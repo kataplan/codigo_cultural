@@ -1,6 +1,6 @@
 echo Iniciando script
 var=${PWD}
-cd /home/guillermo/julia-1.5.3/bin
+cd C:\Users\yosoy\AppData\Local\Programs\Julia-1.9.0\bin
 export JULIA_NUM_THREADS=8
-/home/guillermo/Desktop/Isaac/codigo_RVNS_fuzzy script.jl
+C:\Users\yosoy\Desktop\tesis\code\codigo_cultural\script.jlscript.jl
 
