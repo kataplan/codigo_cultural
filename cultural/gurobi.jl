@@ -2,12 +2,13 @@ using JuMP, Gurobi
 
 #Contador infactibles
 global cont_infactible  = 0;
+global GRB_ENV = Gurobi.Env()
 
 function Gurobi_optimal(C)
     num_stations  = length(ESTACIONES);
     num_candidatas  = length(CANDIDATAS);
     E = zeros(Int64,num_stations);
-    m = Model(with_optimizer(Gurobi.Optimizer, OutputFlag=0, DualReductions=1, InfUnbdInfo=1, TuneTrials=2000000000)) #No muestra resultados por consola.
+    m = Model(Gurobi.Optimizer) #No muestra resultados por consola.
 
     @variable(m,x[i=1:num_stations,j=1:num_candidatas],Bin)
 
