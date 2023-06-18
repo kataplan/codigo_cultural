@@ -18,7 +18,8 @@ global gi_order = []; # Orden de las grillas usadas
 #Grilla
 global M = clustering(); #grilla generada aleatoriamente
 #global weight                 = load_grilla(ide_exp); #grilla cargada de la base de datos
-# global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
+#global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
+
 # global M                = load_random_grilla(); #grilla cargada de manera aleatoria de la base de datos
 
 M_aux = M;
@@ -35,12 +36,12 @@ balance = args[3];
 prioridad = args[4];
 dmax = args[7];
 allprior = args[8];
-tam_pob = 100
+tam_pob = 20
 p_cross = 0.8  # Probabilidad de cruce
-p_mut = 0.1  # Probabilidad de mutación
-max_generaciones = 100  # Número máximo de generaciones
-nr = 10  # Número de individuos a reemplazar
-
+p_mut = 0.05  # Probabilidad de mutación
+max_generaciones = 5  # Número máximo de generaciones
+max_size_belefief_space = 2  # Número de individuos a reemplazar
+crossover_tipe = 1 #1 = un punto ; 2 = dos puntos ; 3 = uniforme
 #= MAIN =#
 # Variables metaheurística
     r_max = args[2]; #Número iteraciones.
@@ -81,7 +82,7 @@ end
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed C_test, E_test, objs_iter, improve, obj = @time algoritmo_cultural(tam_pob, p_cross, p_mut, nr, NO_IMPROVE_LIMIT, e, max_generaciones)
+    exp_time = @elapsed C_test, E_test, objs_iter, improve, obj = @time algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space,crossover_tipe)
     println("tiempo del experimento ", exp_time)
     append!(objs_array, objs_iter)
     append!(exp_time_array, exp_time)
