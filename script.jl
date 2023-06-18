@@ -1,15 +1,15 @@
 import Pkg;
-Pkg.build("SpecialFunctions")
-Pkg.add("Gurobi")
-Pkg.add("RDatasets")
-Pkg.add("Plots")
-Pkg.add("DataTables")
-Pkg.add("Clustering")
-Pkg.add("LinearAlgebra")
-Pkg.add("Distributions")
-Pkg.add("StatsBase")
-Pkg.add("DelimitedFiles")
-
+# Pkg.build("SpecialFunctions")
+# Pkg.add("Gurobi")
+# Pkg.add("JuMP")
+# Pkg.add("RDatasets")
+# Pkg.add("Plots")
+# Pkg.add("DataTables")
+# Pkg.add("Clustering")
+# Pkg.add("LinearAlgebra")
+# Pkg.add("Distributions")
+# Pkg.add("StatsBase")
+# Pkg.add("DelimitedFiles")
 
 using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles
 println("Iniciando Script")
