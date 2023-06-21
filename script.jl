@@ -10,8 +10,8 @@ import Pkg;
 # Pkg.add("Distributions")
 # Pkg.add("StatsBase")
 # Pkg.add("DelimitedFiles")
-
-using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles
+#Pkg.add("ThreadPools")
+using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools
 println("Iniciando Script")
 
 ##Formato --> args = [experiments, iter, bal, prior, mov vecindario, tam vecindario, dmax, restrcprior, instance]
@@ -22,44 +22,45 @@ println("Iniciando Script")
 
 ########## PT_V1 ######################
 #################################### PRIOR 10 BAL 0.5
-    #### 600 iteraciones ####
+#### 600 iteraciones ####
 
-    #args = [5, 600, 0.7, 20, [1 2 3], 3, 2500, 0, 0]
-    #include("./cultural/main.jl")
+#args = [5, 600, 0.7, 20, [1 2 3], 3, 2500, 0, 0]
+#include("./cultural/main.jl")
 
-    #args = [5, 600, 0.5, 20, [1 2 3], 3, 2500, 0, 0]
-    #include("./cultural/main.jl")
+#args = [5, 600, 0.5, 20, [1 2 3], 3, 2500, 0, 0]
+#include("./cultural/main.jl")
 
-    #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
-    #include("./cultural/main.jl")
+#args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
+#include("./cultural/main.jl")
 
-    args = [5, 600, 0.7, 10, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
+args = [5, 100, 10, 10, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    args = [5, 600, 0.5, 10, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
+args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    args = [5, 600, 0.3, 10, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
 
-    args = [5, 600, 0.7, 5, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
+args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    args = [5, 600, 0.5, 5, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
+args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    args = [5, 600, 0.3, 5, [1 2 3], 3, 2500, 0, 0]
-    include("./cultural/main.jl")
+args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    #args = [5, 600, 0.7, 2, [1 2 3], 3, 2500, 0, 0] #Faltan estos
-    #include("./cultural/main.jl")
+args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
+include("./cultural/main.jl")
 
-    #args = [5, 600, 0.5, 2, [1 2 3], 3, 2500, 0, 0] # Faltan estos
-    #include("./cultural/main.jl")
+#args = [5, 600, 0.7, 2, [1 2 3], 3, 2500, 0, 0] #Faltan estos
+#include("./cultural/main.jl")
 
-    #args = [5, 600, 0.3, 2, [1 2 3], 3, 2500, 0, 0] #Faltan estos
-    #include("./cultural/main.jl")
+#args = [5, 600, 0.5, 2, [1 2 3], 3, 2500, 0, 0] # Faltan estos
+#include("./cultural/main.jl")
 
-    #################################################################
+#args = [5, 600, 0.3, 2, [1 2 3], 3, 2500, 0, 0] #Faltan estos
+#include("./cultural/main.jl")
+
+#################################################################
 
 #################################################################

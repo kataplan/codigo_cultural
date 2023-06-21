@@ -31,39 +31,28 @@ M_aux = M;
 #Matriz de conexiones
 global c = connection_calculation();
 
-#parámetros
-balance = args[3];
-prioridad = args[4];
-dmax = args[7];
-allprior = args[8];
-tam_pob = 20
-p_cross = 0.8  # Probabilidad de cruce
-p_mut = 0.05  # Probabilidad de mutación
-max_generaciones = 5  # Número máximo de generaciones
-max_size_belefief_space = 2  # Número de individuos a reemplazar
-crossover_tipe = 1 #1 = un punto ; 2 = dos puntos ; 3 = uniforme
-#= MAIN =#
-# Variables metaheurística
-    r_max = args[2]; #Número iteraciones.
-neighborhood_structure = args[5]; #Tamaños estructuras de entorno.
-len_N = args[6];  #Tamaño de los vecindarios.
-k_max = length(neighborhood_structure); #k máximo.
-
-#Numero de experimentos a realizar.
-experimentos = args[1];
+#Paramaters
+experimentos = args[1]
+tam_pob = args[2]
+max_size_belefief_space = args[3]  # Número de individuos a reemplazar
+max_generaciones = args[4]  # Número máximo de generaciones
+crossover_tipe = args[5]
+mutation_tipe = args[6]
+p_mut = args[7]  # Probabilidad de mutación
+p_cross = args[8]  # Probabilidad de cruce
 
 println("Parámetros");
-println("   experimentos   ", args[1]);
-println("   iteraciones    ", args[2]);
-println("   balance        ", args[3]);
-println("   prioridad      ", args[4]);
-println("   mov_vecindario ", args[5]);
-println("   tam_vecindario ", args[6]);
-println("   dmax           ", args[7]);
+println("   Tamaño de poblacion           = ", args[2]);
+println("   Indiviudos destacados máximos = ", args[3]);
+println("   Generaciones Máximas          = ", args[4]);
+println("   Tipo del crossover            = ", args[5]);
+println("   Tipo de la mutación           = ", args[6]);
+println("   Probabilidad de mutación      = ", args[7]);
+println("   Probabilidad de cruce         = ", args[8]);
 println(" ");
 
 #Limite de no mejoras.
-const NO_IMPROVE_LIMIT = (r_max / 1);
+#const NO_IMPROVE_LIMIT = (r_max / 1);
 
 objs_iter = 0;
 objs_array = [];
@@ -82,11 +71,15 @@ end
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed C_test, E_test, objs_iter, improve, obj = @time algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space,crossover_tipe)
-    println("tiempo del experimento ", exp_time)
+    exp_time = @elapsed individuo, generacion = @time algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
+    println("tiempo del experimento : ", exp_time)
+    #println("individuo              : ", individuo[1])
+    println("fitness                : ", individuo[2])
+    #println("E                      : ", individuo[3])
+    println("generación             : ", generacion)
     append!(objs_array, objs_iter)
     append!(exp_time_array, exp_time)
-    name = "$(balance)_$(prioridad)_exp_$(e)_$(r_max)_$(len_N)_$(improve)_$(obj)"
+    name = "$(tam_pob)_$(max_generaciones)_crossover_$(crossover_tipe)_$(mutation_tipe)_$(p_cross)_$(improve)_$(obj)"
     filename = name * ".txt"
     open(joinpath("./grilla/$(nombre_instancia)/$(balance)_$(prioridad)/$(r_max)/$(neighborhood_structure)_$(len_N)/$(ide_exp)", filename), "a") do file
         write(file, "tiempo       = $exp_time \n")
