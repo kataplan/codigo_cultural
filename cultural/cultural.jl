@@ -1,3 +1,4 @@
+
 # Función para inicializar la población
 function init_population(tam_pob)
     population = []
@@ -8,12 +9,16 @@ function init_population(tam_pob)
     return population
 end
 
-function fintess_population(not_fit_population)
-    population = []
-    for no_fit_individual in not_fit_population
+
+function fitness_population(not_fit_population)
+    population = Vector{Any}(undef, length(not_fit_population))
+    Threads.@threads for i in eachindex(not_fit_population)
+        no_fit_individual = not_fit_population[i]
         _obj, _E = evaluar_individuo(no_fit_individual)
         individual = [no_fit_individual, _obj, _E]
-        push!(population, individual)
+        population[i] = individual
+        println(individual)
+        error("aaaa")
     end
     return population
 end
@@ -31,7 +36,7 @@ function seleccionar_padres(poblacion)
         fitness1 = poblacion[index_1][2]
         fitness2 = poblacion[index_2][2]
         
-        if fitness1 > fitness2
+        if fitness1 < fitness2
             push!(padres, individuo1)
         else
             push!(padres, individuo2)
@@ -156,7 +161,8 @@ function acceptance(belief_network, population, max_size_belefief_space)
     lenght_belief_space = size(belief_network, 1)
     for individual in population
         for j in 1:lenght_belief_space
-            if ((individual[2] >= belief_network[j, 2] && individual[2] <= belief_network[j, 3]) || individual[2] >= belief_network[j, 3])
+    
+            if ((individual[2] >= belief_network[j, 2] && individual[2] <= belief_network[j, 3]) || individual[2] <= belief_network[j, 2])
                 println("Inidividuo agregado al espacio de creencias. ")
                 # El individuo cumple los requisitos del componente normativo
                 if length(belief_network[j, 1]) >= max_size_belefief_space
@@ -167,11 +173,11 @@ function acceptance(belief_network, population, max_size_belefief_space)
                 # Agregamos el nuevo individuo a la memoria cultural
                 push!(belief_network[j, 1], individual)
                 # Ordenamos el array belief_network[j, 1] en base al fitness de los individuos (mayor a menor)
-                sort!(belief_network[j, 1], by=x -> x[2], rev=true)
+                sort!(belief_network[j, 1], by=x -> x[2], rev=false)
 
                 # Actualizamos los rangos del intervalo I y los puntajes L y U
-                belief_network[j, 2] = individual[2]
-                belief_network[j, 3] = individual[2]
+                belief_network[j, 2] = belief_network[j, 1][1][2]  
+                belief_network[j, 3] = belief_network[j, 1][end][2]#
             end
         end
     end
@@ -217,17 +223,12 @@ function explorar_culturalmente(memoria_cultural, e)
     end
 end
 
-# Función para imprimir información de la generación
-function imprimir_informacion_generacion(gen, mejor_solucion)
-    println("Generación: ", gen)
-    println("Mejor solución encontrada: ", mejor_solucion)
-    println("--------------------")
-end
 
 function get_maximum(population)
-    best_fitness = maximum([individual[2] for individual in population])  # Obtener el fitness máximo en la columna 2
+    best_fitness = minimum([individual[2] for individual in population])  # Obtener el fitness máximo en la columna 2
     best_individual_index = findfirst(x -> x[2] == best_fitness, population)  # Encontrar el índice del fitness máximo
-    return population[best_individual_index]  # Devolver el individuo con el fitness máximo
+    best = population[best_individual_index]
+    return best  # Devolver el individuo con el fitness máximo
 end
 
 function influence(population, belief_network)
@@ -235,11 +236,8 @@ function influence(population, belief_network)
     n = size(belief_network, 1)
     for i in 1:n
         individuals = belief_network[i, 1]  # Obtener los individuos de belief_network[i, 1]
-
         new_population = vcat(new_population, individuals)  # Concatenar horizontalmente a la nueva población
-
     end
-
     return new_population
 end
 
@@ -247,26 +245,28 @@ end
 function algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
 
     no_fit_population = init_population(tam_pob)
-    population = fintess_population(no_fit_population)
+    population = fitness_population(no_fit_population)
     belief_network = init_belief_network(max_size_belefief_space)
     belief_network = acceptance(belief_network, population, max_size_belefief_space)
     best_individual = get_maximum(population)
     i = 0
-
+    best_generation = 0
     while i < max_generaciones
         population = influence(population, belief_network)
         p = selection(population, tam_pob)
         ti = crossover(p, crossover_tipe)
         #ti = mutation(ti, p_mut)
-        population = fintess_population(ti)
+        population = fitness_population(ti)
         belief_network = acceptance(belief_network, population, max_size_belefief_space)
         best_individual_i = get_maximum(population)
         if best_individual[2] > best_individual_i[2]
             best_individual = best_individual_i
+            best_generation = i
         end
         i += 1
     end
-
-    return best_individual[3]
+    println()
+    println(best_generation)
+    return best_individual, best_generation
 end
 
