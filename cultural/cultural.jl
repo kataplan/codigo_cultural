@@ -224,29 +224,7 @@ function init_belief_network(n)
     return belief_network
 end
 
-function isinside(intervalo, valor)
-    min_val, max_val = intervalo
-    return min_val <= valor <= max_val
-end
 
-function update_dimension(intervalo, L, U, individuo)
-    min_val, max_val = intervalo
-    if individuo < min_val
-        min_val = individuo
-        L = performance(individuo)  # Calcula el puntaje de performance del valor mínimo
-    end
-    if individuo > max_val
-        max_val = individuo
-        U = performance(individuo)  # Calcula el puntaje de performance del valor máximo
-    end
-end
-# Función para explorar culturalmente
-function explorar_culturalmente(memoria_cultural, e)
-    exploradores = memoria_cultural[rand(1:length(memoria_cultural), e)]
-    for explorador in exploradores
-        realizar_exploracion(explorador)
-    end
-end
 
 
 function get_best(population)
