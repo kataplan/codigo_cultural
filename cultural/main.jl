@@ -61,7 +61,6 @@ println("algoritmo_cultural.")
 
 println("Utilizando ", Threads.nthreads(), " hilo/s");
 
-
 filename = "grilla_$ide_exp.txt";
 mkpath("./grilla/")
 open(joinpath("./grilla/", filename), "w") do file
@@ -73,21 +72,23 @@ for e = 1:experimentos
     E_test = zeros(Int64, length(ESTACIONES))
     exp_time = @elapsed individuo, generacion = @time algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
     println("tiempo del experimento : ", exp_time)
-    #println("individuo              : ", individuo[1])
-    println("fitness                : ", individuo[2])
-    #println("E                      : ", individuo[3])
+    println("individuo              : ", individuo[1])
+    println("E                      : ", individuo[2])
+    println("fitness                : ", individuo[3])
     println("generación             : ", generacion)
+    objs_iter = individuo[3]
+    c_aux = individuo[1]
     append!(objs_array, objs_iter)
     append!(exp_time_array, exp_time)
-    name = "$(tam_pob)_$(max_generaciones)_crossover_$(crossover_tipe)_$(mutation_tipe)_$(p_cross)_$(improve)_$(obj)"
+    name = "$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
     filename = name * ".txt"
-    open(joinpath("./grilla/$(nombre_instancia)/$(balance)_$(prioridad)/$(r_max)/$(neighborhood_structure)_$(len_N)/$(ide_exp)", filename), "a") do file
-        write(file, "tiempo       = $exp_time \n")
+    open(joinpath("cultural/resultados", filename), "w") do file
+        write(file, "tiempo       = $(exp_time) \nfitness                : , $(objs_iter)")
     end
 
     filename = "matriz_conexiones_$(e).txt"
-    open(joinpath("./Resultados finales/$(nombre_instancia)/$(balance)_$(prioridad)/$(r_max)/$(neighborhood_structure)_$(len_N)", filename), "a") do file
-        #write(file, "c = $c_aux\n");
+    open(joinpath("./Resultados finales/$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)", filename), "w") do file
+        write(file, "c = $c_aux\n");
     end
     empty!(gi_order)
     global M = M_aux

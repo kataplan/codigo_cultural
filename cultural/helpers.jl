@@ -1297,3 +1297,94 @@ function grilla_db()
         end
     end
 end
+
+function shaking(len_N, C, E, obj, k, mem_C, index_mem_C, criterio, v_C)
+    C_Arr = zeros(Int64, len_N, length(CANDIDATAS)) #Array final que guarda los centros
+    N = zeros(Int64, len_N, length(CANDIDATAS)) #Array final que guarda los centros
+
+    alpha = zeros(Int64, len_N, length(CANDIDATAS))
+    alpha = copy(C)
+
+    V_Arr = zeros(Int64, len_N, 15)
+    O = zeros(Int64, len_N, 15)
+
+    C_C_Arr = zeros(Int64, len_N, 3)
+    P = zeros(Int64, 3, 3)
+
+    E_Arr = zeros(Int64, len_N, length(CANDIDATAS))
+    objArr = zeros(Int64, len_N)
+
+    #println("centros iniciales \n",v_C,"\n")
+
+    Threads.@spawn begin
+        for i = 1:len_N
+            aux_C = zeros(Int64, length(CANDIDATAS))
+            aux_v = zeros(Int64, 15) #15 hardcoded change
+            aux_c_C = []
+            while true
+                if criterio == 1
+                    if instancia == 0
+                        aux_C, aux_v, aux_c_C = swap_center_weight_grid(alpha, v_C, k)
+                    else
+                        aux_C, aux_v, aux_c_C = swap_center_weight_grid(alpha, v_C, k)
+                    end
+                elseif criterio == 2
+                    aux_C = swap_center_max_distance_grid(alpha, E, k)
+                else
+                    aux_C = swap_center_priorbal_grid(alpha, E, k)
+                end
+                if compare_N(N, aux_C, len_N) && validate_connection(aux_C) && compare_N(mem_C, aux_C, index_mem_C)
+                    index_mem_C += 1
+                    mem_C[index_mem_C, :] = aux_C
+                    N[i, :] = aux_C
+                    O[i, :] = aux_v
+                    #print("este es el contador de centros", aux_c_C,"\n");
+                    P[i, :] = aux_c_C
+                    #print("O\n",O[i,:])
+                    #print(Threads.threadid()," esto es la O cuando se asigna para k = ",k,"\n",O,"\n")
+                    break
+                end
+            end
+        end
+    end
+    #print("aca va la FINAL FINAL p = ", P,"\n")
+    if len_N > 1
+        Threads.@spawn begin
+            for i in 1:len_N
+                #println("Vecino $i ====== Movimiento $k");
+                #N[i,:] == aux_C#
+                C_Arr[i, :] = N[i, :]
+                V_Arr[i, :] = O[i, :]
+                C_C_Arr = P[i, :]
+                aux_obj = 0
+                aux_E = 0
+                aux_obj, aux_E = Gurobi_optimal(N[i, :])
+                if aux_obj == 0 || aux_obj == Inf
+                    #println("solucion descartada obj de ",i," == Inf o 0");
+                    #println("C_C_Arr = ",C_C_Arr);
+                    #println("P[i,:] = ",P[i,:]);
+                    return C_Arr, aux_E, aux_obj, V_Arr, C_C_Arr
+                end
+                objArr[i] = aux_obj
+                E_Arr[i, :] = aux_E
+            end
+        end
+    else
+        i = 1
+        #println("Vecino $i ====== Movimiento $k");
+        #N[i,:] == aux_C#
+        C_Arr[i, :] = N[i, :]
+        V_Arr[i, :] = O[i, :]
+        C_C_Arr = P[i, :]
+        aux_obj, aux_E = Gurobi_optimal(N[i, :])
+        if aux_obj == 0 || aux_obj == Inf
+            return C_Arr, aux_E, aux_obj, V_Arr, C_C_Arr
+        end
+        objArr[i] = aux_obj
+        E_Arr[i, :] = aux_E
+    end
+    #aux_C = N[rand(1:len_N),:];
+    #aux_obj,aux_E = Gurobi_optimal(aux_C);
+    #return aux_C,aux_E,aux_obj;
+    return C_Arr, E_Arr, objArr, V_Arr, C_C_Arr
+end

@@ -9,17 +9,43 @@ function init_population(tam_pob)
     return population
 end
 
+function calculate_centroid(E, center)
+    associated_stations = [i for i in 1:length(E) if E[i] == center]
+    n = length(associated_stations)
+    numerator = sum([dist[associated_stations[i], associated_stations[j]] for i in 1:n, j in 1:n])
+    denominator = n * (n - 1) / 2
+    centroid = numerator / denominator
+
+    return centroid
+end
+
+function calculate_centroid_media(individual, estations, obj)
+    centroid_sum = 0
+    if (obj != Inf)
+        for i in eachindex(individual)
+            centroid = 0
+            if individual[i] == 1
+                centroid = calculate_centroid(estations, i)
+            end
+            centroid_sum += centroid
+        end
+    else
+
+        return Inf
+    end
+    return centroid_sum / count(x -> x == 1, individual)
+
+end
 
 function fitness_population(not_fit_population)
     population = Vector{Any}(undef, length(not_fit_population))
+    _obj_array = 
     Threads.@threads for i in eachindex(not_fit_population)
-        no_fit_individual = not_fit_population[i]
-        _obj, _E = evaluar_individuo(no_fit_individual)
-        individual = [no_fit_individual, _obj, _E]
-        population[i] = individual
-        println(individual)
-        error("aaaa")
+        _obj, _E = evaluar_individuo(not_fit_population[i])
+        population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_media(not_fit_population[i], _E, _obj)]
     end
+    println(population[1][4])
+
     return population
 end
 
@@ -33,9 +59,9 @@ function seleccionar_padres(poblacion)
         index_2 = rand(1:length(poblacion))
         individuo1 = poblacion[index_1][1]
         individuo2 = poblacion[index_2][1]
-        fitness1 = poblacion[index_1][2]
-        fitness2 = poblacion[index_2][2]
-        
+        fitness1 = poblacion[index_1][3]
+        fitness2 = poblacion[index_2][3]
+
         if fitness1 < fitness2
             push!(padres, individuo1)
         else
@@ -71,12 +97,12 @@ function mutation(population, p_mut)
     mutated_population = copy(population)
     m = size(population, 1)
     n = size(population, 2)
-    for i in 1:m
+    for inidividual in mutated_population
         for j in 1:n
             if rand() < p_mut
                 # Realizar mutación en la característica j del individuo i
-                mutated_population[i, j] = realizar_mutacion(population[i, j])
-            end
+                mutated_population[i, j] = 2
+            end 
         end
     end
 
@@ -161,8 +187,7 @@ function acceptance(belief_network, population, max_size_belefief_space)
     lenght_belief_space = size(belief_network, 1)
     for individual in population
         for j in 1:lenght_belief_space
-    
-            if ((individual[2] >= belief_network[j, 2] && individual[2] <= belief_network[j, 3]) || individual[2] <= belief_network[j, 2])
+            if ((individual[j+2] >= belief_network[j, 2] && individual[j+2] <= belief_network[j, 3]) || individual[j+2] <= belief_network[j, 2])
                 println("Inidividuo agregado al espacio de creencias. ")
                 # El individuo cumple los requisitos del componente normativo
                 if length(belief_network[j, 1]) >= max_size_belefief_space
@@ -173,21 +198,21 @@ function acceptance(belief_network, population, max_size_belefief_space)
                 # Agregamos el nuevo individuo a la memoria cultural
                 push!(belief_network[j, 1], individual)
                 # Ordenamos el array belief_network[j, 1] en base al fitness de los individuos (mayor a menor)
-                sort!(belief_network[j, 1], by=x -> x[2], rev=false)
+                sort!(belief_network[j, 1], by=x -> x[j+2], rev=false)
 
                 # Actualizamos los rangos del intervalo I y los puntajes L y U
-                belief_network[j, 2] = belief_network[j, 1][1][2]  
-                belief_network[j, 3] = belief_network[j, 1][end][2]#
+                belief_network[j, 2] = belief_network[j, 1][1][j+2]
+                belief_network[j, 3] = belief_network[j, 1][end][j+2]
             end
         end
     end
+
     return belief_network
 end
 
 
-function init_belief_network(max_size_belefief_space)
-    #la dimension es uno xq solo estoy usando el fitness
-    n = 1
+function init_belief_network(n)
+
     belief_network = Array{Any}(undef, n, 3)
 
     for i in 1:n
@@ -224,9 +249,9 @@ function explorar_culturalmente(memoria_cultural, e)
 end
 
 
-function get_maximum(population)
-    best_fitness = minimum([individual[2] for individual in population])  # Obtener el fitness máximo en la columna 2
-    best_individual_index = findfirst(x -> x[2] == best_fitness, population)  # Encontrar el índice del fitness máximo
+function get_best(population)
+    best_fitness = minimum([individual[3] for individual in population])  # Obtener el fitness máximo en la columna 2
+    best_individual_index = findfirst(x -> x[3] == best_fitness, population)  # Encontrar el índice del fitness máximo
     best = population[best_individual_index]
     return best  # Devolver el individuo con el fitness máximo
 end
@@ -246,27 +271,26 @@ function algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_
 
     no_fit_population = init_population(tam_pob)
     population = fitness_population(no_fit_population)
-    belief_network = init_belief_network(max_size_belefief_space)
+    belief_network = init_belief_network(length(population[1][3:end]))
     belief_network = acceptance(belief_network, population, max_size_belefief_space)
-    best_individual = get_maximum(population)
+    best_individual = get_best(population)
     i = 0
     best_generation = 0
     while i < max_generaciones
+        println("-----Actual Generacion ",i," -----")
         population = influence(population, belief_network)
         p = selection(population, tam_pob)
         ti = crossover(p, crossover_tipe)
         #ti = mutation(ti, p_mut)
         population = fitness_population(ti)
         belief_network = acceptance(belief_network, population, max_size_belefief_space)
-        best_individual_i = get_maximum(population)
-        if best_individual[2] > best_individual_i[2]
+        best_individual_i = get_best(population)
+        if best_individual[3] > best_individual_i[3]
             best_individual = best_individual_i
             best_generation = i
         end
         i += 1
     end
-    println()
-    println(best_generation)
     return best_individual, best_generation
 end
 
