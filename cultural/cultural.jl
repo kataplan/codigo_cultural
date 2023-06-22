@@ -109,26 +109,10 @@ function mutation(population, p_mut)
     return mutated_population
 end
 
-# Función para reemplazar los individuos menos aptos
-function reemplazar_individuos(poblacion, hijos, nr)
-    ordenar_poblacion(poblacion)
-    ordenar_poblacion(hijos)
-    for i in 1:nr
-        poblacion[end-i+1] = hijos[i]
-    end
-end
 
 
 
-# Función para evaluar el criterio de parada
-function criterio_de_parada_cumplido(mejor_solucion, NO_IMPROVE_LIMIT)
-    # Implementar el criterio de parada adecuado a tu problema
-    if mejor_solucion[:aptitud] >= NO_IMPROVE_LIMIT
-        return true
-    else
-        return false
-    end
-end
+
 
 # Función para generar un individuo aleatorio
 function generar_individuo()
