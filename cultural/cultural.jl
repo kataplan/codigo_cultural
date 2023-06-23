@@ -39,11 +39,11 @@ end
 
 function fitness_population(not_fit_population)
     population = Vector{Any}(undef, length(not_fit_population))
-    _obj_array = 
-    Threads.@threads for i in eachindex(not_fit_population)
-        _obj, _E = evaluar_individuo(not_fit_population[i])
-        population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_media(not_fit_population[i], _E, _obj)]
-    end
+    _obj_array =
+        Threads.@threads for i in eachindex(not_fit_population)
+            _obj, _E = evaluar_individuo(not_fit_population[i])
+            population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_media(not_fit_population[i], _E, _obj)]
+        end
     println(population[1][4])
 
     return population
@@ -101,15 +101,29 @@ function mutation(population, p_mut)
         for j in 1:n
             if rand() < p_mut
                 # Realizar mutación en la característica j del individuo i
-                mutated_population[i, j] = 2
-            end 
+                mutated_population[i, j] = individual_mutation(inidividual, p_mut)
+            end
         end
     end
 
     return mutated_population
 end
 
-
+function individual_mutation(individuo, prob_mutacion::Float64)
+    nuevo_individuo = copy(individuo)
+    # Verificar si el individuo es seleccionado para mutación
+    for i in 1:length(individuo[1])
+        # Verificar si el centro está designado en el individuo
+        if individuo[1][i] == 1
+            # Aplicar la probabilidad de mutación para cambiar el centro
+            if rand() < prob_mutacion
+                nuevo_individuo[1][i] = 0
+                nuevo_individuo[1][rand(1:length(individuo))] = 1
+            end
+        end
+    end
+    return nuevo_individuo
+end
 
 
 
@@ -239,11 +253,11 @@ function algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_
     i = 0
     best_generation = 0
     while i < max_generaciones
-        println("-----Actual Generacion ",i," -----")
+        println("-----Actual Generacion ", i, " -----")
         population = influence(population, belief_network)
         p = selection(population, tam_pob)
         ti = crossover(p, crossover_tipe)
-        #ti = mutation(ti, p_mut)
+        ti = mutation(ti, p_mut)
         population = fitness_population(ti)
         belief_network = acceptance(belief_network, population, max_size_belefief_space)
         best_individual_i = get_best(population)
