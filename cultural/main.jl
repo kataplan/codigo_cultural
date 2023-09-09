@@ -16,9 +16,9 @@ global gi_order = []; # Orden de las grillas usadas
 #Criterio  # 1 = swap center random,  2 = swap center max distance,  3 = swap center prior bal
 
 #Grilla
-global M = clustering(); #grilla generada aleatoriamente
-#global weight                 = load_grilla(ide_exp); #grilla cargada de la base de datos
-#global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
+ global M = clustering(); #grilla generada aleatoriamente
+# global weight                 = load_grilla(ide_exp); #grilla cargada de la base de datos
+# global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
 
 # global M                = load_random_grilla(); #grilla cargada de manera aleatoria de la base de datos
 
@@ -61,11 +61,11 @@ println("algoritmo_cultural.")
 
 println("Utilizando ", Threads.nthreads(), " hilo/s");
 
-filename = "grilla_$ide_exp.txt";
-mkpath("./grilla/")
-open(joinpath("./grilla/", filename), "w") do file
-    writedlm(file, M_aux)
-end
+# filename = "grilla_$ide_exp.txt";
+# mkpath("./grilla/")
+# open(joinpath("./grilla/", filename), "w") do file
+#     writedlm(file, M_aux)
+# end
 
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
@@ -86,10 +86,10 @@ for e = 1:experimentos
         write(file, "tiempo       = $(exp_time) \nfitness                : , $(objs_iter)")
     end
 
-    filename = "matriz_conexiones_$(e).txt"
-    open(joinpath("./Resultados finales/$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)", filename), "w") do file
-        write(file, "c = $c_aux\n");
-    end
+    # filename = "matriz_conexiones_$(e).txt"
+    # open(joinpath("./Resultados finales/$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)", filename), "w") do file
+    #     write(file, "c = $c_aux\n");
+    # end
     empty!(gi_order)
     global M = M_aux
 end
@@ -111,7 +111,7 @@ let suma = 0.0, sumatimes = 0.0
     #Resumen resultados
     name = "result_exp_$(balance)_$(prioridad)_$(experimentos)_$(best)"
     filename = name * ".txt"
-    open(joinpath("/home/guillermo/Desktop/Isaac/Resultados/fuzzy/$(nombre_instancia)/$(balance)_$(prioridad)/$(r_max)/$(neighborhood_structure)_$(len_N)/$(ide_exp)", filename), "w") do file
+    open(joinpath("cultural/resultados_text", filename), "w") do file
         write(file, "experimentos   = $experimentos \n")
         write(file, "promedio       = $promedio \n")
         write(file, "d.e            = $de   \n")

@@ -9,7 +9,7 @@ function Gurobi_optimal(C)
     num_candidatas  = length(CANDIDATAS);
     E = zeros(Int64,num_stations);
     m = Model(Gurobi.Optimizer) #No muestra resultados por consola.
-
+    set_optimizer_attribute(m, "OutputFlag", 0)
     @variable(m,x[i=1:num_stations,j=1:num_candidatas],Bin)
 
     if instancia == 0

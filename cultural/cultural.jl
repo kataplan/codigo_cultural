@@ -144,32 +144,36 @@ function realizar_cruce(parent1, parent2, crossover_type)
     n = length(parent1)
     child1 = similar(parent1)
     child2 = similar(parent2)
+    
+    # Convertir los padres a máscaras
+    maskParent1 = binary_to_mask(parent1)
+    maskParent2 = binary_to_mask(parent2)
 
     if crossover_type == 1
         # Cruzamiento en un punto
-        point = rand(2:n-1)
-        child1[1:point] = parent1[1:point]
-        child1[point+1:end] = parent2[point+1:end]
-        child2[1:point] = parent2[1:point]
-        child2[point+1:end] = parent1[point+1:end]
+        point = rand(2:length(maskParent1))
+        child1[1:point] = maskParent1[1:point]
+        child1[point+1:end] = maskParent2[point+1:end]
+        child2[1:point] = maskParent2[1:point]
+        child2[point+1:end] = maskParent1[point+1:end]
     elseif crossover_type == 2
         # Cruzamiento en dos puntos
-        point1, point2 = sort(rand(2:n-1, 2))
-        child1[1:point1] = parent1[1:point1]
-        child1[point1+1:point2] = parent2[point1+1:point2]
-        child1[point2+1:end] = parent1[point2+1:end]
-        child2[1:point1] = parent2[1:point1]
-        child2[point1+1:point2] = parent1[point1+1:point2]
-        child2[point2+1:end] = parent2[point2+1:end]
+        point1, point2 = sort(rand(2:length(maskParent1), 2))
+        child1[1:point1] = maskParent1[1:point1]
+        child1[point1+1:point2] = maskParent2[point1+1:point2]
+        child1[point2+1:end] = maskParent1[point2+1:end]
+        child2[1:point1] = maskParent2[1:point1]
+        child2[point1+1:point2] = maskParent1[point1+1:point2]
+        child2[point2+1:end] = maskParent2[point2+1:end]
     elseif crossover_type == 3
         # Cruzamiento uniforme
         for i in 1:n
             if rand() < 0.5
-                child1[i] = parent1[i]
-                child2[i] = parent2[i]
+                child1[i] = maskParent1[i]
+                child2[i] = maskParent2[i]
             else
-                child1[i] = parent2[i]
-                child2[i] = parent1[i]
+                child1[i] = maskParent2[i]
+                child2[i] = maskParent1[i]
             end
         end
     else
@@ -179,6 +183,13 @@ function realizar_cruce(parent1, parent2, crossover_type)
     return child1, child2
 end
 
+function binary_to_mask(binary)
+    print(binary)
+    # Obtener las posiciones de los "1" en el vector binario
+    mask = findall(x -> x == 1, binary)
+    print(mask)
+    return mask
+end
 
 
 function acceptance(belief_network, population, max_size_belefief_space)

@@ -33,19 +33,18 @@ println("Iniciando Script")
 #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
 #include("./cultural/main.jl")
 
-args = [1, 40, 4, 5, 1, 1, 0.05, 0.8, 0]
+args = [1, 20, 2, 10, 1, 1, 0.05, 0.8, 0]
 include("./cultural/main.jl")
-args = [1, 40, 4, 10, 1, 1, 0.05, 0.8, 0]
-include("./cultural/main.jl")
-args = [1, 40, 4, 15, 1, 1, 0.05, 0.8, 0]
-include("./cultural/main.jl")
-args = [1, 40, 4, 20, 1, 1, 0.05, 0.8, 0]
-include("./cultural/main.jl")
-args = [1, 40, 4, 25, 1, 1, 0.05, 0.8, 0]
-include("./cultural/main.jl")
-args = [1, 40, 4, 30, 1, 1, 0.05, 0.8, 0]
-include("./cultural/main.jl")
-
+#args = [5, 100, 10, 15, 1, 1, 0.05, 0.8, 0]
+#include("./cultural/main.jl")
+# args = [1, 60, 6, 5, 1, 1, 0.05, 0.8, 0]
+# include("./cultural/main.jl")
+# args = [1, 80, 8, 5, 1, 1, 0.05, 0.8, 0]
+# include("./cultural/main.jl")
+# args = [1, 100, 10, 5, 1, 1, 0.05, 0.8, 0]
+# include("./cultural/main.jl")
+# args = [1, 120, 12, 5, 1, 1, 0.05, 0.8, 0]
+# include("./cultural/main.jl")
 
 
 
