@@ -70,7 +70,7 @@ println("Utilizando ", Threads.nthreads(), " hilo/s");
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed individuo, generacion = @time algoritmo_cultural(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
+    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
     println("tiempo del experimento : ", exp_time)
     println("individuo              : ", individuo[1])
     println("E                      : ", individuo[2])

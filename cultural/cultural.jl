@@ -36,7 +36,6 @@ end
 
 function fitness_population(not_fit_population)
     population = Vector{Any}(undef, length(not_fit_population))
-    _obj_array =
         Threads.@threads for i in eachindex(not_fit_population)
             _obj, _E = evaluate_individual(not_fit_population[i])
             population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_mean(not_fit_population[i], _E, _obj)]
@@ -96,7 +95,11 @@ function mutation(population, p_mut)
         for j in 1:n
             if rand() < p_mut
                 # Perform mutation on the j-th feature of the individual
-                mutated_population[i, j] = individual_mutation(individual, p_mut)
+                for i in 1:M
+                    if rand() < p_mut
+                        mutated_population[i, j] = individual_mutation(individual, p_mut)
+                    end
+                end
             end
         end
     end
@@ -133,13 +136,14 @@ end
 # Function to perform crossover between two parents
 function perform_crossover(parent1, parent2, crossover_type)
     n = length(parent1)
-    child1 = similar(parent1)
-    child2 = similar(parent2)
     
     # Convert parents to masks
     maskParent1 = binary_to_mask(parent1)
     maskParent2 = binary_to_mask(parent2)
-
+    println("parent mask 1:",maskParent1)
+    println("parent mask 2:",maskParent2)
+    child1 = similar(maskParent1)
+    child2 = similar(maskParent2)
     if crossover_type == 1
         # Single-point crossover
         point = rand(2:length(maskParent1))
@@ -170,15 +174,26 @@ function perform_crossover(parent1, parent2, crossover_type)
     else
         error("Invalid crossover type")
     end
+    println("child mask 1:",child1)
+    println("child mask 2:",child2)
+    childUnmask1 = mask_to_binary(child1,n)
+    childUnmask2 = mask_to_binary(child2,n)
+    println("child mask 1:",childUnmask1)
+    println("child mask 2:",childUnmask2)
+    return childUnmask1, childUnmask2
+end
 
-    return child1, child2
+function mask_to_binary(child_mask, parent_size)
+    binary_child = zeros(Int, parent_size)
+    for pos in child_mask
+        binary_child[pos] = 1
+    end
+    return binary_child
 end
 
 function binary_to_mask(binary)
-    print(binary)
     # Get the positions of "1" in the binary vector
     mask = findall(x -> x == 1, binary)
-    print(mask)
     return mask
 end
 
@@ -241,7 +256,7 @@ end
 
 # Cultural algorithm
 function cultural_algorithm(pop_size, p_cross, p_mut, max_generations, max_belief_space_size, crossover_type)
-
+    ENV["JULIA_NUM_THREADS"] = 8
     non_fit_population = init_population(pop_size)
     population = fitness_population(non_fit_population)
     belief_network = init_belief_network(length(population[1][3:end]))

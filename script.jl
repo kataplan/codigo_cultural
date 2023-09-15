@@ -12,8 +12,9 @@ import Pkg;
 # Pkg.add("DelimitedFiles")
 #Pkg.add("ThreadPools")
 using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools
-println("Iniciando Script")
+ENV["JULIA_NUM_THREADS"] = 8
 
+println("Iniciando Script")
 ##Formato --> args = [experiments, iter, bal, prior, mov vecindario, tam vecindario, dmax, restrcprior, instance]
 ## Instance: PT = 0 ; PT_V1 = 1; PT_V2 = 2
 ## restrcprior: 0 significa que toma solo las prioridades de primer nivel. 1 significa que considera todos los niveles de prioridad.
