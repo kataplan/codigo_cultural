@@ -9,7 +9,7 @@ function init_population(pop_size)
 end
 
 function calculate_centroid(E, center)
-    associated_stations = [i for i in 1:length(E) if E[i] == center]
+    associated_stations = findall(x -> x == center, E)
     n = length(associated_stations)
     numerator = sum([dist[associated_stations[i], associated_stations[j]] for i in 1:n, j in 1:n])
     denominator = n * (n - 1) / 2
@@ -36,12 +36,10 @@ end
 
 function fitness_population(not_fit_population)
     population = Vector{Any}(undef, length(not_fit_population))
-        Threads.@threads for i in eachindex(not_fit_population)
-            _obj, _E = evaluate_individual(not_fit_population[i])
-            population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_mean(not_fit_population[i], _E, _obj)]
-        end
-    println(population[1][4])
-
+    Threads.@threads for i in eachindex(not_fit_population)
+        _obj, _E = evaluate_individual(not_fit_population[i])
+        population[i] = [not_fit_population[i], _E, _obj, calculate_centroid_mean(not_fit_population[i], _E, _obj)]
+    end
     return population
 end
 
@@ -77,49 +75,77 @@ end
 
 # Function to cross parents and generate children
 function crossover(pairs, crossover_type)
+    println("crossover Process starting")
     children = []
     for pair in pairs
         parent1, parent2 = pair
         child1, child2 = perform_crossover(parent1, parent2, crossover_type)
-        push!(children, child1)
         push!(children, child2)
+        push!(children, child1)
+
     end
     return children
 end
 
 function mutation(population, p_mut)
+    println("Mutation Process starting")
     mutated_population = copy(population)
     m = size(population, 1)
     n = size(population, 2)
     for individual in mutated_population
-        for j in 1:n
-            if rand() < p_mut
-                # Perform mutation on the j-th feature of the individual
-                for i in 1:M
-                    if rand() < p_mut
-                        mutated_population[i, j] = individual_mutation(individual, p_mut)
-                    end
-                end
-            end
+        if (rand(0:1) < p_mut)
+            individual_mutation(individual)
         end
     end
     return mutated_population
 end
 
-function individual_mutation(individual, mutation_prob::Float64)
+function select_random_position(arr, value::Int)
+    valid_positions = findall(x -> x == 1 && x != value, arr)
+    if isempty(valid_positions)
+        return nothing  # No se encontraron posiciones válidas
+    end
+
+    random_position = valid_positions[rand(1:length(valid_positions))]
+    return random_position
+end
+
+function individual_mutation(individual)
     new_individual = copy(individual)
+    ones = count(x -> x == 1, new_individual)
+    if (ones != 15)
+        error("error ENTRO MAL numero de unos>", ones, "      ", new_individual)
+    end
     # Check if the individual is selected for mutation
-    for i in 1:length(individual[1])
-        # Check if the center is designated in the individual
-        if individual[1][i] == 1
-            # Apply the mutation probability to change the center
-            if rand() < mutation_prob
-                new_individual[1][i] = 0
-                new_individual[1][rand(1:length(individual))] = 1
-            end
+    random_cluster = rand(1:15)
+    # Get the indices of centers in the same cluster
+    cluster_centers = M[random_cluster, :]
+    matching_positions = 100000
+    for i in 1:length(cluster_centers)
+        if cluster_centers[i] == 1 && new_individual[i] == 1
+            matching_positions = i
+            break
         end
     end
+    new_individual[matching_positions] = 0
+    mutation_position = select_random_position(cluster_centers, matching_positions)
+
+    new_individual[mutation_position] = 1
+    ones = count(x -> x == 1, new_individual)
+
+    if (ones != 15)
+        error("error MALA MUTACION numero de unos>", ones, "      ", new_individual)
+    end
     return new_individual
+end
+
+
+
+function check_ones_count(individual)
+    if count(x -> x == 1, individual) != 15
+        return false
+    end
+    return true
 end
 
 # Function to generate a random individual
@@ -136,12 +162,10 @@ end
 # Function to perform crossover between two parents
 function perform_crossover(parent1, parent2, crossover_type)
     n = length(parent1)
-    
     # Convert parents to masks
-    maskParent1 = binary_to_mask(parent1)
-    maskParent2 = binary_to_mask(parent2)
-    println("parent mask 1:",maskParent1)
-    println("parent mask 2:",maskParent2)
+    maskParent1 = binary_to_mask(parent1, M)
+    maskParent2 = binary_to_mask(parent2, M)
+
     child1 = similar(maskParent1)
     child2 = similar(maskParent2)
     if crossover_type == 1
@@ -174,12 +198,10 @@ function perform_crossover(parent1, parent2, crossover_type)
     else
         error("Invalid crossover type")
     end
-    println("child mask 1:",child1)
-    println("child mask 2:",child2)
-    childUnmask1 = mask_to_binary(child1,n)
-    childUnmask2 = mask_to_binary(child2,n)
-    println("child mask 1:",childUnmask1)
-    println("child mask 2:",childUnmask2)
+
+    childUnmask1 = mask_to_binary(child1, n)
+    childUnmask2 = mask_to_binary(child2, n)
+
     return childUnmask1, childUnmask2
 end
 
@@ -191,18 +213,25 @@ function mask_to_binary(child_mask, parent_size)
     return binary_child
 end
 
-function binary_to_mask(binary)
-    # Get the positions of "1" in the binary vector
+function binary_to_mask(binary, M)
+    # Obtener las posiciones de los "1" en el vector binario
     mask = findall(x -> x == 1, binary)
-    return mask
+    # Ordenar las posiciones en función de la fila correspondiente en M
+    sorted_mask = sort(mask, by=x -> findfirst(isequal(1), M[:, x]))
+    return sorted_mask
 end
 
 function acceptance(belief_network, population, max_belief_space_size)
     belief_space_length = size(belief_network, 1)
     for individual in population
         for j in 1:belief_space_length
-            if ((individual[j+2] >= belief_network[j, 2] && individual[j+2] <= belief_network[j, 3]) || individual[j+2] <= belief_network[j, 2])
+            if ((individual[j+2] > belief_network[j, 2] && individual[j+2] < belief_network[j, 3]) || individual[j+2] < belief_network[j, 2])
+                
                 println("Individual added to the belief space.")
+                println(j)
+                println(belief_network[j, 2])
+                println(individual[j+2])
+                println(belief_network[j, 3])
                 # The individual meets the normative component requirements
                 if length(belief_network[j, 1]) >= max_belief_space_size
                     # If the cultural memory is full, remove the last individual
@@ -254,9 +283,11 @@ function influence(population, belief_network)
     return new_population
 end
 
+
+
 # Cultural algorithm
 function cultural_algorithm(pop_size, p_cross, p_mut, max_generations, max_belief_space_size, crossover_type)
-    ENV["JULIA_NUM_THREADS"] = 8
+    ENV["JULIA_NUM_THREADS"] = 12
     non_fit_population = init_population(pop_size)
     population = fitness_population(non_fit_population)
     belief_network = init_belief_network(length(population[1][3:end]))
@@ -264,16 +295,21 @@ function cultural_algorithm(pop_size, p_cross, p_mut, max_generations, max_belie
     best_individual = get_best(population)
     i = 0
     best_generation = 0
-    while i < max_generations
-        println("-----Current Generation ", i, " -----")
-        population = influence(population, belief_network)
+    while i < max_generations - 1
+        println("-----Current Generation ", i + 1, " -----")
+        if(max_generations*0.1 < i)
+            population = influence(population, belief_network)
+        end
         p = selection(population, pop_size)
         ti = crossover(p, crossover_type)
+        check_ones_count(ti)
         ti = mutation(ti, p_mut)
+        check_ones_count(ti)
         population = fitness_population(ti)
         belief_network = acceptance(belief_network, population, max_belief_space_size)
         best_individual_i = get_best(population)
         if best_individual[3] > best_individual_i[3]
+            println("new Best individual in ", i+1, " with: ", best_individual[3])
             best_individual = best_individual_i
             best_generation = i
         end

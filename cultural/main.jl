@@ -16,7 +16,7 @@ global gi_order = []; # Orden de las grillas usadas
 #Criterio  # 1 = swap center random,  2 = swap center max distance,  3 = swap center prior bal
 
 #Grilla
- global M = clustering(); #grilla generada aleatoriamente
+global M = clustering(); #grilla generada aleatoriamente Size 15x452
 # global weight                 = load_grilla(ide_exp); #grilla cargada de la base de datos
 # global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
 
