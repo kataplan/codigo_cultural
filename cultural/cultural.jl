@@ -150,8 +150,8 @@ end
 function perform_crossover(parent1, parent2, crossover_type)
     n = length(parent1)
     # Convert parents to masks
-    maskParent1 = binary_to_mask(parent1, M)
-    maskParent2 = binary_to_mask(parent2, M)
+    maskParent1 = binary_to_mask(parent1)
+    maskParent2 = binary_to_mask(parent2)
     child1 = similar(maskParent1)
     child2 = similar(maskParent2)
     if crossover_type == 1
@@ -197,7 +197,7 @@ function mask_to_binary(child_mask, parent_size)
     return binary_child
 end
 
-function binary_to_mask(binary, M)
+function binary_to_mask(binary)
     # Obtener las posiciones de los "1" en el vector binario
     mask = findall(x -> x == 1, binary)
     # Ordenar las posiciones en función de la fila correspondiente en M
@@ -250,6 +250,8 @@ function get_best(population)
 end
 
 function influence(population, belief_network, influence_percentage)
+    modified_individuals = []
+
     # Calculate the number of individuals to select (10% of the population)
     num_to_select = Int(ceil(influence_percentage * length(population)))
     # Randomly select num_to_select individuals from the current population
@@ -258,24 +260,26 @@ function influence(population, belief_network, influence_percentage)
     # Iterate over the selected individuals
     for individual in selected_individuals
         # Iterate over the conditions in the belief network
-        println(individual["slack"])
+        influencer = binary_to_mask(belief_network[condition_array[condition_index]]["individuals"][rand(1:length(belief_network[condition_array[condition_index]]["individuals"]))])
+        mask_individual = individual["individual"]
         for i in lenght(1:individual["slack"])
-            influencer = belief_network[condition_array[condition_index]]["individuals"][rand(1:length(belief_network[condition_array[condition_index]]["individuals"]))]
-            if(slack[i] < influencer[i])
-                #TODO change the i cluster center from individual to match influencer center
+            if (slack[i] < influencer["slack"][i])
+                mask_individual[i] = influencer[i]
+
             end
         end
+        modified_individuals = push!(modified_individuals, mask_to_binary(mask_individual, length(individual["individual"])))
         # Increment the slack_index, cycling through condition_array
         condition_index = mod(condition_index, length(condition_array)) + 1
     end
 
-    return population
+    return modified_individuals
 end
 
 # Helper function to calculate slack for each cluster
 function calculate_slack(slack_array, M)
 
-    
+
     return slack_values
 end
 
