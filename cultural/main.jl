@@ -35,7 +35,7 @@ global c = connection_calculation();
 experimentos = args[1]
 tam_pob = args[2]
 max_size_belefief_space = args[3]  # Número de individuos a reemplazar
-max_generaciones = args[4]  # Número máximo de generaciones
+max_generations = args[4]  # Número máximo de generaciones
 crossover_tipe = args[5]
 mutation_tipe = args[6]
 p_mut = args[7]  # Probabilidad de mutación
@@ -70,24 +70,24 @@ println("Utilizando ", Threads.nthreads(), " hilo/s");
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(tam_pob, p_cross, p_mut, max_generaciones, max_size_belefief_space, crossover_tipe)
+    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(tam_pob, p_cross, p_mut, max_generations, max_size_belefief_space, crossover_tipe, e)
     println("tiempo del experimento : ", exp_time)
-    println("individuo              : ", individuo[1])
-    println("E                      : ", individuo[2])
-    println("fitness                : ", individuo[3])
+    println("individuo              : ", individuo["individual"])
+    println("E                      : ", individuo["E"])
+    println("fitness                : ", individuo["obj"])
     println("generación             : ", generacion)
-    objs_iter = individuo[3]
-    c_aux = individuo[1]
+    objs_iter = individuo["obj"]
+    c_aux = individuo["individual"]
     append!(objs_array, objs_iter)
     append!(exp_time_array, exp_time)
-    name = "$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
+    name = "$(tam_pob)_$(max_generations)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
     filename = name * ".txt"
     open(joinpath("cultural/resultados", filename), "w") do file
         write(file, "tiempo       = $(exp_time) \nfitness                : , $(objs_iter)")
     end
 
     # filename = "matriz_conexiones_$(e).txt"
-    # open(joinpath("./Resultados finales/$(tam_pob)_$(max_generaciones)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)", filename), "w") do file
+    # open(joinpath("./Resultados finales/$(tam_pob)_$(max_generations)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)", filename), "w") do file
     #     write(file, "c = $c_aux\n");
     # end
     empty!(gi_order)
@@ -120,6 +120,8 @@ let suma = 0.0, sumatimes = 0.0
         write(file, "tiempo_prom    = $time_prom s\n")
         write(file, "tiempo_c/exp   = $exp_time_array\n")
         write(file, "n° grilla      = $ide_exp\n")
-        write(file, "criterio       = swap center weight\n")
+        write(file, "generations    = $max_generations")
+        write(file, "population     = $tam_pob")
+        write(file, "beleif size    = $max_size_belefief_space")
     end
 end

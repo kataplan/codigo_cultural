@@ -33,7 +33,7 @@ println("Iniciando Script")
 #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
 #include("./cultural/main.jl")
 
-args = [1, 50, 3, 50, 1, 1, 0.2, 0.8, 0]
+args = [5, 10, 1, 50, 1, 1, 1, 0.8, 0]
 include("./cultural/main.jl")
 #args = [5, 100, 10, 15, 1, 1, 0.05, 0.8, 0]
 #include("./cultural/main.jl") 
