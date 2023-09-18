@@ -252,18 +252,21 @@ end
 function influence(population, belief_network, influence_percentage)
     # Calculate the number of individuals to select (10% of the population)
     num_to_select = Int(ceil(influence_percentage * length(population)))
-    error("A")
     # Randomly select num_to_select individuals from the current population
     selected_individuals = sample(population, num_to_select, replace=false)
-    slack_index = 1
+    condition_index = 1
     # Iterate over the selected individuals
     for individual in selected_individuals
         # Iterate over the conditions in the belief network
         println(individual["slack"])
-
-
-        # Increment the slack_index, cycling through slack_array
-        slack_index = mod(slack_index, length(slack_array)) + 1
+        for i in lenght(1:individual["slack"])
+            influencer = belief_network[condition_array[condition_index]]["individuals"][rand(1:length(belief_network[condition_array[condition_index]]["individuals"]))]
+            if(slack[i] < influencer[i])
+                #TODO change the i cluster center from individual to match influencer center
+            end
+        end
+        # Increment the slack_index, cycling through condition_array
+        condition_index = mod(condition_index, length(condition_array)) + 1
     end
 
     return population

@@ -105,7 +105,7 @@ function Gurobi_optimal(C)
                     E[i] = arrayE[1]
                 end
             end
-            return round(Z_opt), E, slack_values
+            return round(Z_opt), E, matching_values
         end
     else
         @objective(m, Min, sum(dist[i, j] * x[i, j] for i = 1:length(ESTACIONES), j = 1:length(CANDIDATAS)))
@@ -266,7 +266,7 @@ function Gurobi_optimal(C)
                     E[i] = arrayE[1]
                 end
             end
-            return round(Z_opt), E, slack_values
+            return round(Z_opt), E, matching_values
         end
     end
 end
