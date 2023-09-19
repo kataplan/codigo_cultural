@@ -86,9 +86,15 @@ end
 
 
 # Function to cross parents and generate children
-function crossover(pairs, crossover_type)
+function crossover(population, crossover_type)
     println("crossover Process starting")
     children = []
+    pairs = []
+
+    while length(pairs) < length(population) ÷ 2
+        parents = select_parents(population)
+        push!(pairs, parents)
+    end
     for pair in pairs
         parent1, parent2 = pair
         child1, child2 = perform_crossover(parent1, parent2, crossover_type)
@@ -101,9 +107,6 @@ end
 
 function mutation(population)
     println("Mutation Process starting")
-    remaining_pairs = []
-
-  
     mutated_population = []
     for individual in population
         mutated_population = push!(mutated_population, individual_mutation(individual))
