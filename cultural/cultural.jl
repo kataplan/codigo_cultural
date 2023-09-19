@@ -62,17 +62,28 @@ function select_parents(population)
             push!(parents, population[index_2]["individual"])
         end
     end
+
     return parents
 end
 
-function selection(population, pop_size)
-    parents_pairs = []
-    while length(parents_pairs) < pop_size ÷ 2
-        parents = select_parents(population)
-        push!(parents_pairs, parents)
-    end
-    return parents_pairs
+function selection(population, pop_size, influence_percentage, mutation_percentage)
+    # Calcular el tamaño de la parte restante
+    influence_size = Int(ceil(pop_size * influence_percentage))
+    mutation_size = Int(ceil(pop_size * mutation_percentage))
+    remaining_size = Int(pop_size - influence_size - mutation_size)
+
+    # Crear índices desordenados para la población
+    indices = randperm(Int(pop_size))
+    println(length(population))
+    # Dividir la población en las tres partes
+    influence_population = [population[i] for i in indices[1:influence_size]]
+    mutation_population = [population[i] for i in indices[influence_size+1:influence_size+mutation_size]]
+    remaining_population = [population[i] for i in indices[influence_size+mutation_size+1:Int(pop_size)]]
+   
+
+    return remaining_population, influence_population, mutation_population
 end
+
 
 # Function to cross parents and generate children
 function crossover(pairs, crossover_type)
@@ -88,15 +99,14 @@ function crossover(pairs, crossover_type)
     return children
 end
 
-function mutation(population, p_mut)
+function mutation(population)
     println("Mutation Process starting")
-    mutated_population = copy(population)
-    m = size(population, 1)
-    n = size(population, 2)
-    for individual in mutated_population
-        if (rand(0:1) < p_mut)
-            individual_mutation(individual)
-        end
+    remaining_pairs = []
+
+  
+    mutated_population = []
+    for individual in population
+        mutated_population = push!(mutated_population, individual_mutation(individual))
     end
     return mutated_population
 end
@@ -112,7 +122,7 @@ function select_random_position(arr, value::Int)
 end
 
 function individual_mutation(individual)
-    new_individual = copy(individual)
+    new_individual = copy(individual["individual"])
 
     # Check if the individual is selected for mutation
     random_cluster = rand(1:15)
@@ -260,12 +270,12 @@ function influence(population, belief_network, influence_percentage)
     # Iterate over the selected individuals
     for individual in selected_individuals
         # Iterate over the conditions in the belief network
-        influencer = binary_to_mask(belief_network[condition_array[condition_index]]["individuals"][rand(1:length(belief_network[condition_array[condition_index]]["individuals"]))])
-        mask_individual = individual["individual"]
-        for i in lenght(1:individual["slack"])
-            if (slack[i] < influencer["slack"][i])
-                mask_individual[i] = influencer[i]
-
+        influencer = belief_network[condition_array[condition_index]]["individuals"][rand(1:length(belief_network[condition_array[condition_index]]["individuals"]))]
+        mask_influencer = binary_to_mask(influencer["individual"])
+        mask_individual = binary_to_mask(individual["individual"])
+        for i in 1:length(individual["slack"])
+            if (individual["slack"][i] < influencer["slack"][i])
+                mask_individual[i] = mask_influencer[i]
             end
         end
         modified_individuals = push!(modified_individuals, mask_to_binary(mask_individual, length(individual["individual"])))
@@ -285,7 +295,7 @@ end
 
 
 # Cultural algorithm
-function cultural_algorithm(pop_size, p_cross, p_mut, max_generations, max_belief_space_size, crossover_type, experiment)
+function cultural_algorithm(pop_size, p_influ, p_mut, max_generations, max_belief_space_size, crossover_type, experiment)
     ENV["JULIA_NUM_THREADS"] = 12
     non_fit_population = init_population(pop_size)
     population = fitness_population(non_fit_population)
@@ -299,12 +309,14 @@ function cultural_algorithm(pop_size, p_cross, p_mut, max_generations, max_belie
         #if (max_generations * 0.1 < i)
         #    population = influence(population, belief_network, p_cross)
         #end
-        influenced_ti = influence(population, belief_network, p_cross)
-
-        p = selection(population, pop_size)
-        ti = crossover(p, crossover_type)
-        ti = mutation(ti, p_mut)
-        population = fitness_population(ti)
+        ti_cross, ti_mut, ti_influence = selection(population, pop_size, p_influ, p_mut)
+        ti_cross = crossover(ti_cross, crossover_type)
+        ti_influence = influence(ti_influence, belief_network, p_influ)
+        ti_mut = mutation(ti_mut)
+        println(length(ti_cross))
+        println(length(ti_influence))
+        println(length(ti_mut))
+        population = fitness_population(vcat(ti_cross, ti_mut, ti_influence))
         belief_network = acceptance(belief_network, population, max_belief_space_size)
         best_individual_i = get_best(population)
         if best_individual["obj"] > best_individual_i["obj"]

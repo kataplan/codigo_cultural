@@ -11,7 +11,7 @@ import Pkg;
 # Pkg.add("StatsBase")
 # Pkg.add("DelimitedFiles")
 #Pkg.add("ThreadPools")
-using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools
+using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools, Random
 ENV["JULIA_NUM_THREADS"] = 12
 println("Iniciando Script")
 ##Formato --> args = [experiments, iter, bal, prior, mov vecindario, tam vecindario, dmax, restrcprior, instance]
@@ -32,8 +32,8 @@ println("Iniciando Script")
 
 #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
 #include("./cultural/main.jl")
-
-args = [5, 10, 1, 50, 1, 1, 1, 0.8, 0]
+#dejar 
+args = [5, 10, 1, 50, 1, 1, 0.1,  0.1, 0]
 include("./cultural/main.jl")
 #args = [5, 100, 10, 15, 1, 1, 0.05, 0.8, 0]
 #include("./cultural/main.jl") 
@@ -59,7 +59,7 @@ include("./cultural/main.jl")
 # include("./cultural/main.jl")
 
 # args = [1, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
-# include("./cultural/main.jl")
+# include("./cultural/main.jl")s
 
 # args = [5, 20, 2, 5, 1, 1, 0.05, 0.8, 0]
 # include("./cultural/main.jl")

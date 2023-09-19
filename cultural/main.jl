@@ -48,7 +48,7 @@ println("   Generaciones Máximas          = ", args[4]);
 println("   Tipo del crossover            = ", args[5]);
 println("   Tipo de la mutación           = ", args[6]);
 println("   Probabilidad de mutación      = ", args[7]);
-println("   Probabilidad de cruce         = ", args[8]);
+println("   Probabilidad de influencia    = ", args[8]);
 println(" ");
 
 #Limite de no mejoras.
