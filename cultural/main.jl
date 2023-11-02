@@ -5,6 +5,7 @@ include("load_data.jl");
 include("gurobi.jl");
 include("helpers.jl");
 include("cultural.jl");
+include("cultural_helpers.jl");
 
 using Statistics, DelimitedFiles;
 
@@ -16,7 +17,7 @@ global gi_order = []; # Orden de las grillas usadas
 #Criterio  # 1 = swap center random,  2 = swap center max distance,  3 = swap center prior bal
 
 #Grilla
-global M = clustering(); #grilla generada aleatoriamente Size 15x452
+global M = clustering(); #grilla generada con kmenas Size 15x452
 # global weight                 = load_grilla(ide_exp); #grilla cargada de la base de datos
 # global M 		      = get_clusters(getindex.(findmax(weight,dims=2)[2],2))
 
@@ -33,22 +34,22 @@ global c = connection_calculation();
 
 #Paramaters
 experimentos = args[1]
-tam_pob = args[2]
+pop_size = args[2]
 max_size_belefief_space = args[3]  # Número de individuos a reemplazar
 max_generations = args[4]  # Número máximo de generaciones
-crossover_tipe = args[5]
-mutation_tipe = args[6]
-p_mut = args[7]  # Probabilidad de mutación
-p_cross = args[8]  # Probabilidad de cruce
+crossover_type = args[5]
+p_mut = args[6]
+mutation_size = args[7]  # Probabilidad de mutación
+influence_Size = args[8]  # Probabilidad de cruce
 
 println("Parámetros");
 println("   Tamaño de poblacion           = ", args[2]);
 println("   Indiviudos destacados máximos = ", args[3]);
 println("   Generaciones Máximas          = ", args[4]);
 println("   Tipo del crossover            = ", args[5]);
-println("   Tipo de la mutación           = ", args[6]);
-println("   Probabilidad de mutación      = ", args[7]);
-println("   Probabilidad de influencia    = ", args[8]);
+println("   probabilidad mutacion         = ", args[6]);
+println("   Individuos para mutación      = ", args[7]);
+println("   Individuos para influencia    = ", args[8]);
 println(" ");
 
 #Limite de no mejoras.
@@ -59,7 +60,7 @@ objs_array = [];
 exp_time_array = [];
 println("algoritmo_cultural.")
 
-println("Utilizando ", Threads.nthreads(), " hilo/s");
+println("Hilos disponibles ", Threads.nthreads(), " hilo/s");
 
 # filename = "grilla_$ide_exp.txt";
 # mkpath("./grilla/")
@@ -70,7 +71,7 @@ println("Utilizando ", Threads.nthreads(), " hilo/s");
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(tam_pob, p_cross, p_mut, max_generations, max_size_belefief_space, crossover_tipe, e)
+    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(pop_size, influence_Size, mutation_size, max_generations, max_size_belefief_space, crossover_type, e, p_mut)
     println("tiempo del experimento : ", exp_time)
     println("individuo              : ", individuo["individual"])
     println("E                      : ", individuo["E"])
@@ -109,7 +110,7 @@ let suma = 0.0, sumatimes = 0.0
     worst = maximum(objs_array)
 
     #Resumen resultados
-    name = "result_exp_$(balance)_$(prioridad)_$(experimentos)_$(best)"
+    name = "result_exp_$(balance)_$(prioridad)_$(experimentos)_$(best)_hilos"
     filename = name * ".txt"
     open(joinpath("cultural/resultados_text", filename), "w") do file
         write(file, "experimentos   = $experimentos \n")

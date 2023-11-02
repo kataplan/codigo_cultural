@@ -13,7 +13,7 @@ function clustering()
         #station = parse(Int64,data[1]);
         latitude = parse(Float64, data[2])
         longitude = parse(Float64, data[3])
-
+        
         #geo_data[i,1] = station;
         geo_data[i, 1] = latitude
         geo_data[i, 2] = longitude
@@ -119,7 +119,7 @@ function init_solution_C()
 end
 
 function init_solution_C_grid()
-    println("Solución inicial con grilla")
+    println("Individuo inicial generado")
     _C = zeros(Int64, length(CANDIDATAS))
     for i = 1:cl
         zone = findall(x -> trunc(x) == 1, vec(M[i, :])) ##RETORNA LA ZONA, Parte con i=1; saca la zona
@@ -135,6 +135,7 @@ function init_solution_C_grid()
     end
     return _C
 end
+
 
 function update_solution(mejor_C)
     println("Actualizacion de grilla utilizando la mejor solucion")
@@ -1388,3 +1389,4 @@ function shaking(len_N, C, E, obj, k, mem_C, index_mem_C, criterio, v_C)
     #return aux_C,aux_E,aux_obj;
     return C_Arr, E_Arr, objArr, V_Arr, C_C_Arr
 end
+
