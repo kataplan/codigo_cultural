@@ -81,7 +81,7 @@ for e = 1:experimentos
     c_aux = individuo["individual"]
     append!(objs_array, objs_iter)
     append!(exp_time_array, exp_time)
-    name = "$(tam_pob)_$(max_generations)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
+    name = "$(pop_size)_$(max_generations)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
     filename = name * ".txt"
     open(joinpath("cultural/resultados", filename), "w") do file
         write(file, "tiempo       = $(exp_time) \nfitness                : , $(objs_iter)")
@@ -122,7 +122,7 @@ let suma = 0.0, sumatimes = 0.0
         write(file, "tiempo_c/exp   = $exp_time_array\n")
         write(file, "n° grilla      = $ide_exp\n")
         write(file, "generations    = $max_generations")
-        write(file, "population     = $tam_pob")
+        write(file, "population     = $pop_size")
         write(file, "beleif size    = $max_size_belefief_space")
     end
 end
