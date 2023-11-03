@@ -7,27 +7,14 @@ function update_center_counts(individual, count_matrix)
     return count_matrix
 end
 
-function calculate_variety_array(individual, normalized_matrix)
+function calculate_count_array(individual, variety_matrix)
     array = zeros(Float64, size(M,1))
-    mask = binary_to_mask(individual)
-    for (index, value) in enumerate(mask)
-        array[index] = normalized_matrix[index, value]
+    for (index, value) in enumerate(individual)
+        array[index] = variety_matrix[index, value]
     end
     return array
 end
 
-function normalize_counts(count_matrix)
-    normalized_matrix = zeros(Float64, size(count_matrix))
-
-    for i in 1:size(count_matrix, 1)
-        max_value = maximum(count_matrix[i, :])
-        if max_value > 0
-            normalized_matrix[i, :] .= count_matrix[i, :] ./ max_value
-        end
-    end
-
-    return normalized_matrix
-end
 
 function mask_to_binary(child_mask, parent_size)
     binary_child = zeros(Int, parent_size)
@@ -48,6 +35,7 @@ end
 function select_random_position(arr, value::Int)
     valid_positions = findall(x -> x == 1 && x != value, arr)
     if isempty(valid_positions)
+        println("wtf")
         return value  # No se encontraron posiciones válidas
     end
 

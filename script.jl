@@ -39,7 +39,7 @@ println("Iniciando Script")
 # println("   Tipo de la mutación           = ", args[6]);
 # println("   Probabilidad de mutación      = ", args[7]);
 # println("   Probabilidad de influencia    = ", args[8]);
-args = [3, 50, 10, 50, 2, 0.5, 10, 20, 0]
+args = [3, 10, 1, 3, 2, 1, 2, 0]
 include("./cultural/main.jl")
 #args = [1, 20, 2, 1, 1, 1, 10, 20, 0]
 #include("./cultural/main.jl") 

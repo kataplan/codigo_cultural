@@ -1,4 +1,4 @@
-global instancia = args[9]; #0 = PT, 1 = PT_V1, 2 = PT_V2
+global instancia = args[8]; #0 = PT, 1 = PT_V1, 2 = PT_V2
 global last_obj = 0;
 
 include("load_data.jl");
@@ -47,9 +47,8 @@ println("   Tamaño de poblacion           = ", args[2]);
 println("   Indiviudos destacados máximos = ", args[3]);
 println("   Generaciones Máximas          = ", args[4]);
 println("   Tipo del crossover            = ", args[5]);
-println("   probabilidad mutacion         = ", args[6]);
-println("   Individuos para mutación      = ", args[7]);
-println("   Individuos para influencia    = ", args[8]);
+println("   Individuos para mutación      = ", args[6]);
+println("   Individuos para influencia    = ", args[7]);
 println(" ");
 
 #Limite de no mejoras.
@@ -71,7 +70,7 @@ println("Hilos disponibles ", Threads.nthreads(), " hilo/s");
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(pop_size, influence_Size, mutation_size, max_generations, max_size_belefief_space, crossover_type, e, p_mut)
+    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(pop_size, influence_Size, mutation_size, max_generations, max_size_belefief_space, crossover_type, e)
     println("tiempo del experimento : ", exp_time)
     println("individuo              : ", individuo["individual"])
     println("E                      : ", individuo["E"])

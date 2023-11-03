@@ -98,14 +98,6 @@ function crossover(population, crossover_type)
     for pair in pairs
         parent1, parent2 = pair
         child1, child2 = perform_crossover(parent1, parent2, crossover_type)
-        result = check_centers(child1)
-        if !result
-            error("error en cruce")
-        end
-        result = check_centers(child2)
-        if !result
-            error("error en cruce")
-        end
 
         push!(children, child2)
         push!(children, child1)
@@ -115,40 +107,36 @@ function crossover(population, crossover_type)
     return children
 end
 
-function mutation(population, normalized_center_counts, p_mut)
+function mutation(population, center_counts)
     println("Mutation Process starting")
     mutated_population = []
     for individual in population
-        mutated_population = push!(mutated_population, individual_mutation(individual, normalized_center_counts, p_mut))
+        mutated_population = push!(mutated_population, individual_mutation(individual, center_counts))
     end
     return mutated_population
 end
 
 
-function individual_mutation(individual, normalized_center_counts, p_mut)
+function individual_mutation(individual, center_counts)
     new_individual = copy(individual["individual"])
-    variety_array = calculate_variety_array(new_individual, normalized_center_counts)
-    # Check if the individual is selected for mutation
-    random_number = rand()
-    println("pre mutacion:")
-    result = check_centers(new_individual)
-    new_individual = binary_to_mask(new_individual)
-    for (index, variety) in enumerate(variety_array)
-        if variety * p_mut >= random_number
-            mutation_position = select_random_position(M[index, :], new_individual[index])
-            if (mutation_position !== nothing)
-                new_individual[index] = mutation_position
-            end
+    mask_individual = binary_to_mask(new_individual)
+    count_array = calculate_count_array(mask_individual, center_counts)
+
+    # Encontrar la variedad máxima y los índices de los centros con la misma variedad
+    max_count = maximum(count_array)
+    max_count_indices = findall(count_array .== max_count)
+    # Elegir un centro al azar entre los que tienen la máxima variedad
+    if !isempty(max_count_indices)
+        random_center_index = rand(max_count_indices)
+        mutation_position = select_random_position(M[random_center_index, :], random_center_index)
+        if mutation_position !== nothing
+            mask_individual[random_center_index] = mutation_position
         end
     end
-    new_individual = mask_to_binary(new_individual, length(individual["individual"]))
-    println("Post mutacion:")
-    result = check_centers(new_individual)
-    if !result
-        error("error en mutacion")
-    end
+    new_individual = mask_to_binary(mask_individual, length(individual["individual"]) )
     return new_individual
 end
+
 
 # Function to generate a random individual
 function generate_individual()
@@ -292,7 +280,7 @@ end
 
 
 # Cultural algorithm
-function cultural_algorithm(cross_size, influence_size, mutation_size, max_generations, max_belief_space_size, crossover_type, experiment, p_mut)
+function cultural_algorithm(cross_size, influence_size, mutation_size, max_generations, max_belief_space_size, crossover_type, experiment)
     ENV["JULIA_NUM_THREADS"] = 12
     population_sizes = Dict(
         "influence" => Int(mutation_size),
@@ -305,7 +293,6 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, max_gener
     non_fit_population = init_population(population_sizes["pop_size"], center_count_matrix)
 
     population, center_count_matrix = fitness_population(non_fit_population, center_count_matrix)
-    normalized_center_counts = normalize_counts(center_count_matrix)
 
     belief_network = init_belief_network()
     belief_network = acceptance(belief_network, population, max_belief_space_size)
@@ -321,9 +308,8 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, max_gener
         ti_cross, ti_mut, ti_influence = selection(population, population_sizes)
         ti_cross = crossover(ti_cross, crossover_type)
         ti_influence = influence(ti_influence, belief_network)
-        ti_mut = mutation(ti_mut, normalized_center_counts, p_mut)
+        ti_mut = mutation(ti_mut, center_count_matrix)
         population, center_count_matrix = fitness_population(vcat(ti_cross, ti_mut, ti_influence), center_count_matrix)
-        normalized_center_counts = normalize_counts(center_count_matrix)
         belief_network = acceptance(belief_network, population, max_belief_space_size)
         best_individual_i = get_best(population)
 
