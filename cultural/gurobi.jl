@@ -7,7 +7,6 @@ global GRB_ENV = Gurobi.Env()
 function Gurobi_optimal(C)
     num_stations = length(ESTACIONES)
     num_candidatas = length(CANDIDATAS)
-    holgura_values = zeros(length(CANDIDATAS))
 
     E = zeros(Int64, num_stations)
     m = Model(Gurobi.Optimizer) #No muestra resultados por consola.

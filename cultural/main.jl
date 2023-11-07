@@ -34,13 +34,12 @@ global c = connection_calculation();
 
 #Paramaters
 experimentos = args[1]
-pop_size = args[2]
+cross_size = args[2]
 max_size_belefief_space = args[3]  # Número de individuos a reemplazar
 max_generations = args[4]  # Número máximo de generaciones
 crossover_type = args[5]
-p_mut = args[6]
-mutation_size = args[7]  # Probabilidad de mutación
-influence_Size = args[8]  # Probabilidad de cruce
+mutation_size = args[6]  # Probabilidad de mutación
+influence_Size = args[7]  # Probabilidad de cruce
 
 println("Parámetros");
 println("   Tamaño de poblacion           = ", args[2]);
@@ -54,7 +53,6 @@ println(" ");
 #Limite de no mejoras.
 #const NO_IMPROVE_LIMIT = (r_max / 1);
 
-objs_iter = 0;
 objs_array = [];
 exp_time_array = [];
 println("algoritmo_cultural.")
@@ -70,20 +68,20 @@ println("Hilos disponibles ", Threads.nthreads(), " hilo/s");
 for e = 1:experimentos
     C_test = zeros(Int64, length(CANDIDATAS))
     E_test = zeros(Int64, length(ESTACIONES))
-    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(pop_size, influence_Size, mutation_size, max_generations, max_size_belefief_space, crossover_type, e)
+    exp_time = @elapsed individuo, generacion = @time cultural_algorithm(cross_size, influence_Size, mutation_size, max_generations, max_size_belefief_space, crossover_type, e)
     println("tiempo del experimento : ", exp_time)
     println("individuo              : ", individuo["individual"])
     println("E                      : ", individuo["E"])
     println("fitness                : ", individuo["obj"])
     println("generación             : ", generacion)
-    objs_iter = individuo["obj"]
+    
     c_aux = individuo["individual"]
-    append!(objs_array, objs_iter)
+    append!(objs_array, individuo["obj"])
     append!(exp_time_array, exp_time)
-    name = "$(pop_size)_$(max_generations)_$(crossover_tipe)_$(mutation_tipe)_$(max_size_belefief_space)_$(e)"
+    name = "$(cross_size)_$(max_generations)_$(crossover_type)_$(mutation_size)_$(max_size_belefief_space)_$(e)"
     filename = name * ".txt"
     open(joinpath("cultural/resultados", filename), "w") do file
-        write(file, "tiempo       = $(exp_time) \nfitness                : , $(objs_iter)")
+        write(file, "tiempo       = $(exp_time) \nfitness                : , $(individuo["obj"])")
     end
 
     # filename = "matriz_conexiones_$(e).txt"
@@ -121,7 +119,7 @@ let suma = 0.0, sumatimes = 0.0
         write(file, "tiempo_c/exp   = $exp_time_array\n")
         write(file, "n° grilla      = $ide_exp\n")
         write(file, "generations    = $max_generations")
-        write(file, "population     = $pop_size")
+        write(file, "population     = $cross_size")
         write(file, "beleif size    = $max_size_belefief_space")
     end
 end

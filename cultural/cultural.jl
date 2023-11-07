@@ -4,7 +4,7 @@ condition_array = ["obj", "centroid"]
 function init_population(pop_size, center_count_matrix)
     population = []
     for _ in 1:pop_size
-        individual = generate_individual()  # Generate a random individual
+        individual = init_solution_C_grid()  # Generate a random individual
         push!(population, individual)
     end
     return population
@@ -39,7 +39,7 @@ end
 function fitness_population(not_fit_population, count_matrix)
     population = Vector{Any}(undef, length(not_fit_population))
     Threads.@threads for i in eachindex(not_fit_population)
-        _obj, _E, slack_array = evaluate_individual(not_fit_population[i])
+        _obj, _E, slack_array = Gurobi_optimal(not_fit_population[i])
         population[i] = Dict(
             "individual" => not_fit_population[i],
             "E" => _E,
@@ -72,15 +72,13 @@ function select_parents(population)
 end
 
 function selection(population, population_sizes)
-    # Calcular el tamaño de la parte restante
-
     # Crear índices desordenados para la población
     indices = randperm(population_sizes["pop_size"])
     # Dividir la población en las tres partes
+    println(population_sizes["mutation"])
     influence_population = [population[i] for i in indices[1:population_sizes["influence"]]]
     mutation_population = [population[i] for i in indices[population_sizes["influence"]+1:population_sizes["influence"]+population_sizes["mutation"]]]
     remaining_population = [population[i] for i in indices[population_sizes["influence"]+population_sizes["mutation"]+1:population_sizes["pop_size"]]]
-
     return remaining_population, influence_population, mutation_population
 end
 
@@ -90,7 +88,6 @@ function crossover(population, crossover_type)
     println("Crossover Process Starting")
     children = []
     pairs = []
-
     while length(pairs) < length(population) ÷ 2
         parents = select_parents(population)
         push!(pairs, parents)
@@ -98,12 +95,9 @@ function crossover(population, crossover_type)
     for pair in pairs
         parent1, parent2 = pair
         child1, child2 = perform_crossover(parent1, parent2, crossover_type)
-
         push!(children, child2)
         push!(children, child1)
-
     end
-
     return children
 end
 
@@ -121,32 +115,19 @@ function individual_mutation(individual, center_counts)
     new_individual = copy(individual["individual"])
     mask_individual = binary_to_mask(new_individual)
     count_array = calculate_count_array(mask_individual, center_counts)
-
     # Encontrar la variedad máxima y los índices de los centros con la misma variedad
     max_count = maximum(count_array)
     max_count_indices = findall(count_array .== max_count)
     # Elegir un centro al azar entre los que tienen la máxima variedad
     if !isempty(max_count_indices)
         random_center_index = rand(max_count_indices)
-        mutation_position = select_random_position(M[random_center_index, :], random_center_index)
+        mutation_position = select_random_position(M[random_center_index, :], mask_individual[random_center_index])
         if mutation_position !== nothing
             mask_individual[random_center_index] = mutation_position
         end
     end
-    new_individual = mask_to_binary(mask_individual, length(individual["individual"]) )
+    new_individual = mask_to_binary(mask_individual, length(individual["individual"]))
     return new_individual
-end
-
-
-# Function to generate a random individual
-function generate_individual()
-    C = init_solution_C_grid()
-    return C
-end
-
-# Function to evaluate an individual
-function evaluate_individual(individual)
-    return Gurobi_optimal(individual)
 end
 
 # Function to perform crossover between two parents
@@ -155,11 +136,14 @@ function perform_crossover(parent1, parent2, crossover_type)
     # Convert parents to masks
     maskParent1 = binary_to_mask(parent1)
     maskParent2 = binary_to_mask(parent2)
+    println("parent 1 :", maskParent1)
+    println("parent 2 :", maskParent2)
     child1 = similar(maskParent1)
     child2 = similar(maskParent2)
     if crossover_type == 1
         # Single-point crossover
         point = rand(2:length(maskParent1))
+        println("punto ", point)
         child1[1:point] = maskParent1[1:point]
         child1[point+1:end] = maskParent2[point+1:end]
         child2[1:point] = maskParent2[1:point]
@@ -167,6 +151,7 @@ function perform_crossover(parent1, parent2, crossover_type)
     elseif crossover_type == 2
         # Two-point crossover
         point1, point2 = sort(rand(2:length(maskParent1), 2))
+        println("puntos (", point1, ",", point2, ")")
         child1[1:point1] = maskParent1[1:point1]
         child1[point1+1:point2] = maskParent2[point1+1:point2]
         child1[point2+1:end] = maskParent1[point2+1:end]
@@ -187,6 +172,8 @@ function perform_crossover(parent1, parent2, crossover_type)
     else
         error("Invalid crossover type")
     end
+    println("child 1 ", child1)
+    println("child 2 ", child2)
     childUnmask1 = mask_to_binary(child1, n)
     childUnmask2 = mask_to_binary(child2, n)
     return childUnmask1, childUnmask2
@@ -243,9 +230,7 @@ function get_best(population)
 end
 
 function influence(population, belief_network)
-    println("Influence Process Starting")
     modified_individuals = []
-
     condition_index = 1
     # Iterate over the selected individuals
     for individual in population
@@ -258,12 +243,7 @@ function influence(population, belief_network)
                 mask_individual[i] = mask_influencer[i]
             end
         end
-        # debug
         new_individual = mask_to_binary(mask_individual, length(individual["individual"]))
-        result = check_centers(new_individual)
-        if !result
-            error("error en influencia")
-        end
         #end debug
         modified_individuals = push!(modified_individuals, new_individual)
         # Increment the slack_index, cycling through condition_array
@@ -273,18 +253,13 @@ function influence(population, belief_network)
     return modified_individuals
 end
 
-# Helper function to calculate slack for each cluster
-function calculate_slack(slack_array, M)
-    return slack_values
-end
-
 
 # Cultural algorithm
 function cultural_algorithm(cross_size, influence_size, mutation_size, max_generations, max_belief_space_size, crossover_type, experiment)
     ENV["JULIA_NUM_THREADS"] = 12
     population_sizes = Dict(
-        "influence" => Int(mutation_size),
-        "mutation" => Int(influence_size),
+        "influence" => Int(influence_size),
+        "mutation" => Int(mutation_size),
         "cross" => Int(cross_size),
         "pop_size" => Int(mutation_size + influence_size + cross_size)
     )
@@ -305,7 +280,7 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, max_gener
         #if (max_generations * 0.1 < i)
         #    population = influence(population, belief_network, p_cross)
         #end
-        ti_cross, ti_mut, ti_influence = selection(population, population_sizes)
+        ti_cross, ti_influence, ti_mut = selection(population, population_sizes)
         ti_cross = crossover(ti_cross, crossover_type)
         ti_influence = influence(ti_influence, belief_network)
         ti_mut = mutation(ti_mut, center_count_matrix)

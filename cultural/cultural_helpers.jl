@@ -33,9 +33,10 @@ function binary_to_mask(binary)
 end
 
 function select_random_position(arr, value::Int)
-    valid_positions = findall(x -> x == 1 && x != value, arr)
+    new_array = copy(arr)
+    new_array[value] = 0
+    valid_positions = findall(x -> x == 1, new_array)
     if isempty(valid_positions)
-        println("wtf")
         return value  # No se encontraron posiciones válidas
     end
 

@@ -32,15 +32,18 @@ println("Iniciando Script")
 
 #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
 #include("./cultural/main.jl")
-#println("   Tamaño de poblacion           = ", args[2]);
+# println("Parámetros");
+# println("   Tamaño de poblacion           = ", args[2]);
 # println("   Indiviudos destacados máximos = ", args[3]);
 # println("   Generaciones Máximas          = ", args[4]);
 # println("   Tipo del crossover            = ", args[5]);
-# println("   Tipo de la mutación           = ", args[6]);
-# println("   Probabilidad de mutación      = ", args[7]);
-# println("   Probabilidad de influencia    = ", args[8]);
-args = [3, 10, 1, 3, 2, 1, 2, 0]
+# println("   Individuos para mutación      = ", args[6]);
+# println("   Individuos para influencia    = ", args[7]);
+# println(" ");
+args = [5, 10, 3, 5, 2, 2, 5, 0]
 include("./cultural/main.jl")
+#args = [5, 70, 10, 100, 2, 10, 20, 0]
+#include("./cultural/main.jl")
 #args = [1, 20, 2, 1, 1, 1, 10, 20, 0]
 #include("./cultural/main.jl") 
 #args = [1, 70, 10, 10, 1, 1, 0, 30, 0]
