@@ -324,8 +324,8 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, end_numbe
 
         i += 1
     end
-    identification="$(best_individual["obj"])_$(best_generation)_$(cross_size)_$(influence_size)_$(mutation)_$(size)_$(end_number)_$(max_belief_space_size)_$(crossover_type)_$(end_rule).png"
-    create_and_save_plot(best_overall_individuals, "overall_best_$(identification)")    
-    create_and_save_plot(best_individuals_per_generation, "generation_best_$(identification)")    
+    #identification="$(best_individual["obj"])_$(best_generation)_$(cross_size)_$(influence_size)_$(mutation)_$(size)_$(end_number)_$(max_belief_space_size)_$(crossover_type)_$(end_rule).png"
+    #create_and_save_plot(best_overall_individuals, "overall_best_$(identification)")    
+    #create_and_save_plot(best_individuals_per_generation, "generation_best_$(identification)")    
     return best_individual, best_generation + 1, best_individuals_per_generation, best_overall_individuals
 end
