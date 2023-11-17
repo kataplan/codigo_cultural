@@ -1,7 +1,7 @@
 # Function to initialize the population
-condition_array = ["obj", "centroid"]
+condition_array = ["obj"]
 
-function init_population(pop_size, center_count_matrix)
+function init_population(pop_size)
     population = []
     for _ in 1:pop_size
         individual = init_solution_C_grid()  # Generate a random individual
@@ -21,20 +21,34 @@ function calculate_centroid(E, center)
 end
 
 function calculate_centroid_mean(individual, stations, obj)
-    centroid_sum = 0
-    if (obj != Inf)
-        for i in eachindex(individual)
-            centroid = 0
-            if individual[i] == 1
-                centroid = calculate_centroid(stations, i)
-            end
-            centroid_sum += centroid
-        end
-    else
+    centroid_sum = 0.0
+    station_indices = findall(individual .== 1)
+    num_selected_stations = length(station_indices)
+
+    if obj == Inf
         return Inf
     end
-    return centroid_sum / count(x -> x == 1, individual)
+
+    if num_selected_stations > 0
+        # Divide los índices de las estaciones en minibatches de un tamaño fijo, por ejemplo, 100 estaciones por minibatch.
+        minibatch_size = 50
+        num_minibatches = ceil(Int, num_selected_stations / minibatch_size)
+
+        for i = 1:num_minibatches
+            start_idx = (i - 1) * minibatch_size + 1
+            end_idx = min(i * minibatch_size, num_selected_stations)
+            minibatch_indices = station_indices[start_idx:end_idx]
+
+            if !isempty(minibatch_indices)
+                minibatch_centroids = [calculate_centroid(stations, center) for center in minibatch_indices]
+                centroid_sum += sum(minibatch_centroids)
+            end
+        end
+    end
+
+    return centroid_sum / num_selected_stations
 end
+
 
 function fitness_population(not_fit_population, count_matrix)
     population = Vector{Any}(undef, length(not_fit_population))
@@ -47,7 +61,7 @@ function fitness_population(not_fit_population, count_matrix)
             "centroid" => calculate_centroid_mean(not_fit_population[i], _E, _obj),
             "slack" => slack_array
         )
-        count_matrix = update_center_counts(not_fit_population[i], count_matrix,)
+        count_matrix = update_center_counts(not_fit_population[i], count_matrix)
     end
     return population, count_matrix
 end
@@ -75,7 +89,6 @@ function selection(population, population_sizes)
     # Crear índices desordenados para la población
     indices = randperm(population_sizes["pop_size"])
     # Dividir la población en las tres partes
-    println(population_sizes["mutation"])
     influence_population = [population[i] for i in indices[1:population_sizes["influence"]]]
     mutation_population = [population[i] for i in indices[population_sizes["influence"]+1:population_sizes["influence"]+population_sizes["mutation"]]]
     remaining_population = [population[i] for i in indices[population_sizes["influence"]+population_sizes["mutation"]+1:population_sizes["pop_size"]]]
@@ -136,14 +149,11 @@ function perform_crossover(parent1, parent2, crossover_type)
     # Convert parents to masks
     maskParent1 = binary_to_mask(parent1)
     maskParent2 = binary_to_mask(parent2)
-    println("parent 1 :", maskParent1)
-    println("parent 2 :", maskParent2)
     child1 = similar(maskParent1)
     child2 = similar(maskParent2)
     if crossover_type == 1
         # Single-point crossover
         point = rand(2:length(maskParent1))
-        println("punto ", point)
         child1[1:point] = maskParent1[1:point]
         child1[point+1:end] = maskParent2[point+1:end]
         child2[1:point] = maskParent2[1:point]
@@ -151,7 +161,6 @@ function perform_crossover(parent1, parent2, crossover_type)
     elseif crossover_type == 2
         # Two-point crossover
         point1, point2 = sort(rand(2:length(maskParent1), 2))
-        println("puntos (", point1, ",", point2, ")")
         child1[1:point1] = maskParent1[1:point1]
         child1[point1+1:point2] = maskParent2[point1+1:point2]
         child1[point2+1:end] = maskParent1[point2+1:end]
@@ -172,8 +181,6 @@ function perform_crossover(parent1, parent2, crossover_type)
     else
         error("Invalid crossover type")
     end
-    println("child 1 ", child1)
-    println("child 2 ", child2)
     childUnmask1 = mask_to_binary(child1, n)
     childUnmask2 = mask_to_binary(child2, n)
     return childUnmask1, childUnmask2
@@ -230,6 +237,7 @@ function get_best(population)
 end
 
 function influence(population, belief_network)
+    println("Influence Process starting")
     modified_individuals = []
     condition_index = 1
     # Iterate over the selected individuals
@@ -255,7 +263,7 @@ end
 
 
 # Cultural algorithm
-function cultural_algorithm(cross_size, influence_size, mutation_size, max_generations, max_belief_space_size, crossover_type, experiment)
+function cultural_algorithm(cross_size, influence_size, mutation_size, end_number, max_belief_space_size, crossover_type, end_rule)
     ENV["JULIA_NUM_THREADS"] = 12
     population_sizes = Dict(
         "influence" => Int(influence_size),
@@ -263,23 +271,33 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, max_gener
         "cross" => Int(cross_size),
         "pop_size" => Int(mutation_size + influence_size + cross_size)
     )
+    if end_rule == "generations"
+        max_generations = end_number
+        no_improvement_limit = Inf
+    else
+        if end_rule == "no_improvement"
+            max_generations = Inf
+            no_improvement_limit = end_number
+        else
+            error("Not know end rule")
+        end
+    end
+
     center_count_matrix = zeros(Int, size(M))
 
-    non_fit_population = init_population(population_sizes["pop_size"], center_count_matrix)
+    non_fit_population = init_population(population_sizes["pop_size"])
 
     population, center_count_matrix = fitness_population(non_fit_population, center_count_matrix)
-
     belief_network = init_belief_network()
     belief_network = acceptance(belief_network, population, max_belief_space_size)
     best_individual = get_best(population)
+    best_individuals_per_generation = Float64[]
+    best_overall_individuals = Float64[]
     i = 0
     best_generation = 0
-    not_improvement = 0
-    while i < max_generations - 1
-        println("-----Current Generation ", i + 1, " -----")
-        #if (max_generations * 0.1 < i)
-        #    population = influence(population, belief_network, p_cross)
-        #end
+    not_improvement_count = 0
+    while i < max_generations
+        println("------- Current Generation ", i + 1, " -------")
         ti_cross, ti_influence, ti_mut = selection(population, population_sizes)
         ti_cross = crossover(ti_cross, crossover_type)
         ti_influence = influence(ti_influence, belief_network)
@@ -287,27 +305,27 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, max_gener
         population, center_count_matrix = fitness_population(vcat(ti_cross, ti_mut, ti_influence), center_count_matrix)
         belief_network = acceptance(belief_network, population, max_belief_space_size)
         best_individual_i = get_best(population)
+        push!(best_individuals_per_generation, best_individual_i["obj"])
 
         if best_individual["obj"] > best_individual_i["obj"]
-            println("new Best individual in ", i + 1, " with: ", best_individual["obj"])
+            println("New Best individual in gen ", i + 1, ". Score: ", best_individual["obj"])
             best_individual = best_individual_i
             best_generation = i
-            not_improvement = 0
+            not_improvement_count = 0
         else
-            not_improvement += 1
+            not_improvement_count += 1
         end
+        push!(best_overall_individuals, best_individual["obj"])
 
-        if not_improvement == 15
+        if not_improvement_count == no_improvement_limit
             break
         end
+        
+
         i += 1
     end
-    name = "result_exp_$(experiment)_resultados_$(cross_size)_$(influence_size)_$(mutation_size)"
-    filename = name * ".txt"
-    open(joinpath("cultural/resultados_text", filename), "w") do file
-        write(file, "new Best individual in   = $best_generation \n")
-        write(file, "Best individual          = $best_individual \n")
-
-    end
-    return best_individual, best_generation
+    identification="$(best_individual["obj"])_$(best_generation)_$(cross_size)_$(influence_size)_$(mutation)_$(size)_$(end_number)_$(max_belief_space_size)_$(crossover_type)_$(end_rule).png"
+    create_and_save_plot(best_overall_individuals, "overall_best_$(identification)")    
+    create_and_save_plot(best_individuals_per_generation, "generation_best_$(identification)")    
+    return best_individual, best_generation + 1, best_individuals_per_generation, best_overall_individuals
 end

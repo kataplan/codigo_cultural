@@ -11,7 +11,7 @@ import Pkg;
 # Pkg.add("StatsBase")
 # Pkg.add("DelimitedFiles")
 #Pkg.add("ThreadPools")
-using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools, Random
+using RDatasets, DataTables, Clustering, LinearAlgebra, Distributions, StatsBase, DelimitedFiles, ThreadPools, Random, Plots
 ENV["JULIA_NUM_THREADS"] = 12
 println("Iniciando Script")
 ##Formato --> args = [experiments, iter, bal, prior, mov vecindario, tam vecindario, dmax, restrcprior, instance]
@@ -32,15 +32,9 @@ println("Iniciando Script")
 
 #args = [5, 600, 0.3, 20, [1 2 3], 3, 2500, 0, 0]
 #include("./cultural/main.jl")
-# println("Parámetros");
-# println("   Tamaño de poblacion           = ", args[2]);
-# println("   Indiviudos destacados máximos = ", args[3]);
-# println("   Generaciones Máximas          = ", args[4]);
-# println("   Tipo del crossover            = ", args[5]);
-# println("   Individuos para mutación      = ", args[6]);
-# println("   Individuos para influencia    = ", args[7]);
-# println(" ");
-args = [5, 10, 3, 5, 2, 2, 5, 0]
+
+# [e, cross, max_belefief, end_number, c_type, mutation, influence, ("no_improvement" | "generations"), instance]
+args = [5, 8, 2, 5, 1, 1, 1, "generations", 0]
 include("./cultural/main.jl")
 #args = [5, 70, 10, 100, 2, 10, 20, 0]
 #include("./cultural/main.jl")

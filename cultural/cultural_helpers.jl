@@ -8,7 +8,7 @@ function update_center_counts(individual, count_matrix)
 end
 
 function calculate_count_array(individual, variety_matrix)
-    array = zeros(Float64, size(M,1))
+    array = zeros(Float64, size(M, 1))
     for (index, value) in enumerate(individual)
         array[index] = variety_matrix[index, value]
     end
@@ -45,6 +45,23 @@ function select_random_position(arr, value::Int)
 end
 
 function check_centers(arr)
-    println(count(isequal(1), arr))
     return count(isequal(1), arr) == 15
+end
+
+function create_and_save_plot(data::Vector{Float64}, filename::AbstractString)
+
+    output_folder = "plots"
+
+    output_filename = filename
+    max_value = maximum(data)
+    ylim_max = max_value * 1.1  # Ajusta el factor según tus datos
+    output_path = joinpath(output_folder, output_filename)
+
+    # Crear un gráfico de dispersión
+    plot(data, seriestype=:line, legend=false, grid=false, xlabel="Generations", ylabel="Objective value")
+
+    # Guardar el gráfico en la ubicación especificada
+    savefig(output_path)
+
+    println("Gráfico guardado en $output_path")
 end
