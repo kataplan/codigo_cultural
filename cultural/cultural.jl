@@ -274,10 +274,12 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, end_numbe
     if end_rule == "generations"
         max_generations = end_number
         no_improvement_limit = Inf
+        influence_condition = max_generations / 10
     else
         if end_rule == "no_improvement"
             max_generations = Inf
             no_improvement_limit = end_number
+            influence_condition = end_number
         else
             error("Not know end rule")
         end
@@ -300,7 +302,9 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, end_numbe
         println("------- Current Generation ", i + 1, " -------")
         ti_cross, ti_influence, ti_mut = selection(population, population_sizes)
         ti_cross = crossover(ti_cross, crossover_type)
-        ti_influence = influence(ti_influence, belief_network)
+        if i + 1 > influence_condition
+            ti_influence = influence(ti_influence, belief_network)
+        end
         ti_mut = mutation(ti_mut, center_count_matrix)
         population, center_count_matrix = fitness_population(vcat(ti_cross, ti_mut, ti_influence), center_count_matrix)
         belief_network = acceptance(belief_network, population, max_belief_space_size)
@@ -320,7 +324,7 @@ function cultural_algorithm(cross_size, influence_size, mutation_size, end_numbe
         if not_improvement_count == no_improvement_limit
             break
         end
-        
+
 
         i += 1
     end
